@@ -31,7 +31,7 @@ include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
 exclude = ["doc/*.html"]
 
 [project.scripts]
-mdeq = "mdeq_analysis:main"
+mdeqasis = "mdeq_analysis:main"
 
 [project.optional-dependencies]
 test = [
