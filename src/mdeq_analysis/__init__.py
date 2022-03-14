@@ -1,10 +1,6 @@
 """scripts for analysis steps associated with the mdeq app"""
 
-import pathlib
-
 import click
-
-from scitrack import CachingLogger
 
 from mdeq_analysis import microbial as micro
 
@@ -77,6 +73,21 @@ def filter_alignments(**kwargs):
 def microbial_fit_gn(*kwargs):
     """fits GN to microbial 16S data"""
     result = micro.fit_gn(**kwargs)
+    if result:
+        click.secho("Done!", fg="green")
+    else:
+        click.secho("Failed!", fg="red")
+
+
+@main.command()
+@_inpath
+@_outpath
+@_limit
+@_overwrite
+@_verbose
+def microbial_gn_stats(**kwargs):
+    """generate stats from GN fits to microbial 16S data"""
+    result = micro.gn_statistics(**kwargs)
     if result:
         click.secho("Done!", fg="green")
     else:

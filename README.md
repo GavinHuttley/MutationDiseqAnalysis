@@ -2,8 +2,10 @@
 
 ## Analysis of microbial 16S sequences
 
-These from Kaehler et al 2015
+These are controlled vi the `mdeqasis` command line tool. The following subcommands were run:
 
-`microbial_filter.ipynb` -> produces tinydb of 16S sequences after removing non nucleotide characters (including gaps)
+`filter-alignments` -> produces tinydb of 16S sequences after removing non nucleotide characters (including gaps)
 
-`microbial_fit_GN.ipynb` -> fits the GN model to 16S sequences
+`microbial-fit-gn` -> fits GN model to all microbial alignments
+
+`microbial-gn-stats` -> extracts statistics for sampling the four seed alignments
