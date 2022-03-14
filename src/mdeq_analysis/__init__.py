@@ -1,9 +1,12 @@
 """scripts for analysis steps associated with the mdeq app"""
+
 import pathlib
 
 import click
 
 from scitrack import CachingLogger
+
+from mdeq_analysis import microbial as micro
 
 
 __author__ = "Gavin Huttley"
@@ -17,9 +20,31 @@ def main():
     """cli for analyses assocuated with mdeq"""
 
 
+_inpath = click.option(
+    "-i", "--inpath", type=click.Path(exists=True), help="path to a tinydb"
+)
+_outpath = click.option(
+    "-o",
+    "--outpath",
+    type=click.Path(),
+    help="path to create a result tinydb",
+)
+
 _verbose = click.option("-v", "--verbose", count=True)
 _limit = click.option("-L", "--limit", type=int, default=None)
 _overwrite = click.option("-O", "--overwrite", is_flag=True)
+_parallel = click.option(
+    "-p",
+    "--parallel",
+    is_flag=True,
+    help="run in parallel (on single machine)",
+)
+_testrun = click.option(
+    "-t",
+    "--testrun",
+    is_flag=True,
+    help="don't write anything, quick (but inaccurate) optimisation",
+)
 
 
 @main.command()
@@ -33,31 +58,29 @@ _overwrite = click.option("-O", "--overwrite", is_flag=True)
 @click.option("-o", "--outpath", type=click.Path(), help="path to write tinydb output")
 @_limit
 @_overwrite
-def filter_alignments(indir, outpath, suffix, limit, overwrite):
+def filter_alignments(**kwargs):
     """filters sequence alignments"""
-    from cogent3.app import io, sample
+    result = micro.filter_alignments(**kwargs)
+    if result:
+        click.secho("Done!", fg="green")
+    else:
+        click.secho("Failed!", fg="red")
 
-    LOGGER = CachingLogger(create_dir=True)
-    LOGGER.log_args()
 
-    indir = pathlib.Path(indir)
-    outpath = pathlib.Path(outpath)
-
-    LOGGER.log_file_path = outpath.parent / "mdeqasis-filter_alignments.log"
-
-    dstore = io.get_data_store(indir, suffix=suffix, limit=limit)
-
-    loader = io.load_aligned(moltype="dna", format="nexus")
-
-    just_nucs = sample.omit_degenerates(
-        moltype="dna", motif_length=1, gap_is_degen=True
-    )
-    writer = io.write_db(
-        outpath, create=True, if_exists="overwrite" if overwrite else "raise"
-    )
-    app = loader + just_nucs + writer
-    r = app.apply_to(dstore, cleanup=True, show_progress=True, logger=LOGGER)
-    click.secho("Done!", fg="green")
+@main.command()
+@_inpath
+@_outpath
+@_parallel
+@_limit
+@_overwrite
+@_verbose
+def microbial_fit_gn(*kwargs):
+    """fits GN to microbial 16S data"""
+    result = micro.fit_gn(**kwargs)
+    if result:
+        click.secho("Done!", fg="green")
+    else:
+        click.secho("Failed!", fg="red")
 
 
 if __name__ == "__main__":
