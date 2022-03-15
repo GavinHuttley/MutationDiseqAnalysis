@@ -1,7 +1,7 @@
 """sampling and analysis of microbial data"""
 import pathlib
 
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
@@ -70,8 +70,10 @@ def fit_gn(inpath, outpath, parallel, limit, overwrite, verbose):
     gn = evo.model(
         "GN",
         unique_trees=True,
+        time_het="max",
         optimise_motif_probs=True,
         opt_args=dict(max_restarts=5),
+        show_progress=verbose > 2,
     )
     writer = io.write_db(outpath, create=True, if_exists=overwrite)
 
@@ -84,6 +86,7 @@ def fit_gn(inpath, outpath, parallel, limit, overwrite, verbose):
         logger=LOGGER,
         show_progress=verbose >= 2,
     )
+    print(app.data_store.describe)
     app.data_store.close()
     return True
 
