@@ -1,6 +1,7 @@
 """scripts for analysis steps associated with the mdeq app"""
 
 import click
+from wakepy import set_keepawake, unset_keepawake
 
 from mdeq_analysis import microbial as micro
 
@@ -72,11 +73,13 @@ def filter_alignments(**kwargs):
 @_verbose
 def microbial_fit_gn(**kwargs):
     """fits GN to microbial 16S data"""
+    set_keepawake(keep_screen_awake=False)
     result = micro.fit_gn(**kwargs)
     if result:
         click.secho("Done!", fg="green")
     else:
         click.secho("Failed!", fg="red")
+    unset_keepawake()
 
 
 @main.command()
