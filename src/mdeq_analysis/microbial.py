@@ -91,13 +91,23 @@ def fit_gn(inpath, outpath, parallel, limit, overwrite, verbose):
     return True
 
 
-@dataclass
+@dataclass(slots=True)
 class gn_fit_stats(SerialisableMixin):
     source: str
     foreground: str
     jsd: float
     entropy: float
     cond_num: float
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    def to_record(self):
+        return tuple(self.to_dict().values())
+
+    @classmethod
+    def header(self):
+        return self.__slots__
 
 
 @deserialise.register_deserialiser(misc.get_object_provenance(gn_fit_stats))
@@ -120,7 +130,7 @@ def compute_stats(model_result):
     """
     aln = model_result.alignment
     edge = foreground_from_jsd(aln)
-    edge, ingroup, jsd = get_jsd(aln)
+    edge, _, jsd = get_jsd(aln)
 
     entropy = get_entropy(model_result, edge, stat_pi=True)
 
@@ -130,15 +140,15 @@ def compute_stats(model_result):
     cond_num = cond(ev)
 
     return gn_fit_stats(
-        source=str(aln.info.source),
+        source=_make_name(aln.info.source),
         jsd=jsd,
-        entropy=entropy,
+        entropy=float(entropy),
         cond_num=cond_num,
-        foreground=ingroup,
+        foreground=edge,
     )
 
 
-def gn_statistics(inpath, outpath, limit, overwrite, verbose):
+def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
     from cogent3.app import io
 
     LOGGER = CachingLogger(create_dir=True)
@@ -156,6 +166,12 @@ def gn_statistics(inpath, outpath, limit, overwrite, verbose):
     calc_stats = compute_stats()
     writer = io.write_db(outpath, create=True, if_exists=overwrite)
     app = loader + calc_stats + writer
-    r = app.apply_to(dstore, logger=LOGGER, cleanup=True, show_progress=verbose > 1)
+    r = app.apply_to(
+        dstore,
+        logger=LOGGER,
+        cleanup=True,
+        show_progress=verbose > 1,
+        parallel=parallel,
+    )
     print(app.data_store.describe)
     return True
