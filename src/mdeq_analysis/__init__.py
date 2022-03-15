@@ -70,7 +70,7 @@ def filter_alignments(**kwargs):
 @_limit
 @_overwrite
 @_verbose
-def microbial_fit_gn(*kwargs):
+def microbial_fit_gn(**kwargs):
     """fits GN to microbial 16S data"""
     result = micro.fit_gn(**kwargs)
     if result:
