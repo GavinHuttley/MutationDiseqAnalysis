@@ -84,7 +84,6 @@ def fit_gn(inpath, outpath, parallel, limit, overwrite, verbose):
         logger=LOGGER,
         show_progress=verbose >= 2,
     )
-    print("", app.data_store.describe, "", sep="\n")
     app.data_store.close()
     return True
 
