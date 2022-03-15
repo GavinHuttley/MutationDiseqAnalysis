@@ -1,5 +1,5 @@
 """scripts for analysis steps associated with the mdeq app"""
-
+import mdeq  # isort: skip  # make sure this stays at the top
 import click
 from wakepy import set_keepawake, unset_keepawake
 
