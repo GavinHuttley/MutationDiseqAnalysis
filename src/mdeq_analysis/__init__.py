@@ -82,6 +82,7 @@ def microbial_fit_gn(**kwargs):
 @main.command()
 @_inpath
 @_outpath
+@_parallel
 @_limit
 @_overwrite
 @_verbose

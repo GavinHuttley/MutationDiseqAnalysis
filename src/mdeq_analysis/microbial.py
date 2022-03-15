@@ -3,7 +3,7 @@ import pathlib
 
 from dataclasses import dataclass
 
-from cogent3.app.composable import SERIALISABLE_TYPE, appify
+from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
 from mdeq.utils import SerialisableMixin, foreground_from_jsd
@@ -15,6 +15,11 @@ __author__ = "Gavin Huttley"
 __credits__ = ["Kath Caley", "Gavin Huttley"]
 
 __version__ = "2022.03.14"
+
+
+def _make_name(x):
+    p = get_data_source(x)
+    return pathlib.Path(pathlib.Path(p).stem).stem
 
 
 def filter_alignments(indir, outpath, suffix, limit, overwrite):
@@ -37,7 +42,10 @@ def filter_alignments(indir, outpath, suffix, limit, overwrite):
         moltype="dna", motif_length=1, gap_is_degen=True
     )
     writer = io.write_db(
-        outpath, create=True, if_exists="overwrite" if overwrite else "raise"
+        outpath,
+        name_callback=_make_name,
+        create=True,
+        if_exists="overwrite" if overwrite else "raise",
     )
     app = loader + just_nucs + writer
     r = app.apply_to(dstore, cleanup=True, show_progress=True, logger=LOGGER)
