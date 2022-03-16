@@ -2,6 +2,7 @@
 import mdeq  # isort: skip  # make sure this stays at the top
 import click
 
+
 try:
     from wakepy import set_keepawake, unset_keepawake
 except NotImplementedError:

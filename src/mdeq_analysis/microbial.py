@@ -1,7 +1,7 @@
 """sampling and analysis of microbial data"""
 import pathlib
 
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 
 from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
