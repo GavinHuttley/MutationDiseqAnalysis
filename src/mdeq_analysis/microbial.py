@@ -52,7 +52,7 @@ def filter_alignments(indir, outpath, suffix, limit, overwrite):
     return True
 
 
-def fit_gn(inpath, outpath, parallel, limit, overwrite, verbose):
+def fit_gn(inpath, outpath, parallel, mpi, limit, overwrite, verbose):
     """fits GN to microbial 16S data"""
     from cogent3.app import evo, io
 
@@ -79,13 +79,20 @@ def fit_gn(inpath, outpath, parallel, limit, overwrite, verbose):
 
     app = loader + gn + writer
     dstore = io.get_data_store(inpath, limit=limit)
+
+    mpi = None if mpi < 2 else mpi  # no point in MPI if < 2 processors
+    parallel = True if mpi else parallel
+    par_kw = dict(max_workers=mpi, use_mpi=True) if mpi else None
+
     r = app.apply_to(
         dstore,
         cleanup=True,
         parallel=parallel,
         logger=LOGGER,
+        par_kw=par_kw,
         show_progress=verbose >= 2,
     )
+
     print(app.data_store.describe)
     app.data_store.close()
     return True

@@ -29,6 +29,9 @@ _outpath = click.option(
 
 _verbose = click.option("-v", "--verbose", count=True)
 _limit = click.option("-L", "--limit", type=int, default=None)
+_mpi = click.option(
+    "-m", "--mpi", type=int, default=0, help="use MPI with this number of procs"
+)
 _overwrite = click.option("-O", "--overwrite", is_flag=True)
 _parallel = click.option(
     "-p",
@@ -68,6 +71,7 @@ def filter_alignments(**kwargs):
 @_inpath
 @_outpath
 @_parallel
+@_mpi
 @_limit
 @_overwrite
 @_verbose
