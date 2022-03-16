@@ -6,6 +6,7 @@ from dataclasses import asdict, dataclass
 from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
+from mdeq.model import mles_within_bounds
 from mdeq.utils import SerialisableMixin, foreground_from_jsd
 from numpy.linalg import cond, eig
 from scitrack import CachingLogger
@@ -123,7 +124,7 @@ def deserialise_gn_fit_stats(data):
 
 
 @appify(input_types=SERIALISABLE_TYPE, output_types=SERIALISABLE_TYPE)
-def compute_stats(model_result):
+def compute_stats(result):
     """
     Parameters
     ----------
@@ -135,13 +136,16 @@ def compute_stats(model_result):
     for wrapping in a user_function.
 
     """
-    aln = model_result.alignment
+    if not result:  # handle case where result is NotCompleted
+        return result
+
+    aln = result.alignment
     edge = foreground_from_jsd(aln)
     edge, _, jsd = get_jsd(aln)
 
-    entropy = get_entropy(model_result, edge, stat_pi=True)
+    entropy = get_entropy(result, edge, stat_pi=True)
 
-    Q = model_result.lf.get_rate_matrix_for_edge(edge)
+    Q = result.lf.get_rate_matrix_for_edge(edge)
     ev = eig(Q)[1]
 
     cond_num = cond(ev)
@@ -172,7 +176,8 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
     loader = io.load_db()
     calc_stats = compute_stats()
     writer = io.write_db(outpath, create=True, if_exists=overwrite)
-    app = loader + calc_stats + writer
+    within_bounds = mles_within_bounds()
+    app = loader + within_bounds + calc_stats + writer
     r = app.apply_to(
         dstore,
         logger=LOGGER,
