@@ -1,7 +1,16 @@
 """scripts for analysis steps associated with the mdeq app"""
 import mdeq  # isort: skip  # make sure this stays at the top
 import click
-from wakepy import set_keepawake, unset_keepawake
+
+try:
+    from wakepy import set_keepawake, unset_keepawake
+except NotImplementedError:
+    # probably on linux where this library doesn't work
+    def dummy(**kwargs):
+        ...
+
+    set_keepawake, unset_keepawake = dummy, dummy
+
 
 from mdeq_analysis import microbial as micro
 
