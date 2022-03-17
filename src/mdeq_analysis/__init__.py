@@ -31,7 +31,7 @@ def main():
 _seed_aln = click.option(
     "-sa",
     "--seed_aln",
-    type=click.Choice(["hi-hi", "hi-lo", "lo-hi", "lo-lo"]),
+    type=click.Choice(["hi_hi", "hi_lo", "lo_hi", "lo_lo"]),
     required=True,
     help="specify seed alignment in terms of relative jsd, entropy",
 )
@@ -119,9 +119,9 @@ def microbial_gn_stats(**kwargs):
 @mdeq._overwrite
 @mdeq._verbose
 @mdeq._testrun
-def microbial_toe_synthetic(**kwargs):
+def microbial_fg_gsn_synthetic(**kwargs):
     """generate stats from GN fits to microbial 16S data"""
-    result = micro.make_toe_synthetic(**kwargs)
+    result = micro.fg_GSN_synthetic(**kwargs)
     func_name = inspect.stack()[0].function
     if result:
         click.secho(f"{func_name!r} is done!", fg="green")

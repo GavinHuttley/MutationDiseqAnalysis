@@ -1,9 +1,10 @@
 """sampling and analysis of microbial data"""
 import pathlib
+import inspect
 
 from dataclasses import asdict, dataclass
 from random import Random
-
+from tqdm import tqdm
 from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
@@ -193,14 +194,14 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
 # the selected seed alignments, keys are `jsd-entropy`
 
 seed_alignments = [
-    ("hi-hi", "197113_332182_17210"),
-    ("lo-hi", "198257_206396_13724"),
-    ("hi-lo", "200580_114946_573911"),
-    ("lo-lo", "758_443154_73021"),
+    ("hi_hi", "197113_332182_17210"),
+    ("lo_hi", "198257_206396_13724"),
+    ("hi_lo", "200580_114946_573911"),
+    ("lo_lo", "758_443154_73021"),
 ]
 
 
-def make_toe_synthetic(
+def fg_GSN_synthetic(
     inpath, outdir, seed_aln, seed, sim_length, num_reps, overwrite, verbose, testrun
 ):
     """simulate alignments under mixed general and stationary models
@@ -226,7 +227,10 @@ def make_toe_synthetic(
 
     inpath = pathlib.Path(inpath)
     outdir = pathlib.Path(outdir)
-    outpath = outdir / f"{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
+    outpath = (
+        outdir
+        / f"{inspect.stack()[0].function}-{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
+    )
 
     LOGGER.log_args()
 
@@ -273,7 +277,7 @@ def make_toe_synthetic(
     rng.seed(seed)
 
     sim_length = int(sim_length)
-    for i in range(num_reps):
+    for i in tqdm(range(num_reps)):
         sim_aln = lf.simulate_alignment(sequence_length=sim_length, seed=rng)
         sim_aln.info.fg_edge = fg_edge
         sim_aln.info.source = f"{seed_aln}-sim-{i}.json"
