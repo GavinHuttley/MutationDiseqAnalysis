@@ -28,14 +28,20 @@ def main():
     """cli for analyses assocuated with mdeq"""
 
 
-_seed_alignment = click.option(
+_seed_aln = click.option(
     "-sa",
-    "--seed_alignment",
+    "--seed_aln",
     type=click.Choice(["hi-hi", "hi-lo", "lo-hi", "lo-lo"]),
     required=True,
     help="specify seed alignment in terms of relative jsd, entropy",
 )
-_sim_length = click.option("-s", "--limit", type=int, default=None)
+_sim_length = click.option(
+    "-sl",
+    "--sim_length",
+    type=click.Choice(["300", "3000", "30000"]),
+    required=True,
+    help="alignment length to generate",
+)
 _indir = click.option(
     "-d",
     "--indir",
@@ -106,7 +112,7 @@ def microbial_gn_stats(**kwargs):
 @main.command()
 @mdeq._inpath
 @_outdir
-@_seed_alignment
+@_seed_aln
 @mdeq._seed
 @_sim_length
 @mdeq._num_reps

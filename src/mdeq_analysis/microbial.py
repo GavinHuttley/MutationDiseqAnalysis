@@ -201,7 +201,7 @@ seed_alignments = [
 
 
 def make_toe_synthetic(
-    inpath, outdir, seed_aln, seed, sim_length, num_reps, overwrite, verbose, test_run
+    inpath, outdir, seed_aln, seed, sim_length, num_reps, overwrite, verbose, testrun
 ):
     """simulate alignments under mixed general and stationary models
 
@@ -224,7 +224,7 @@ def make_toe_synthetic(
 
     LOGGER = CachingLogger(create_dir=True)
 
-    indir = pathlib.Path(indir)
+    inpath = pathlib.Path(inpath)
     outdir = pathlib.Path(outdir)
     outpath = outdir / f"{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
 
@@ -235,6 +235,7 @@ def make_toe_synthetic(
     LOGGER.input_file(inpath)
 
     dstore = io.get_data_store(inpath)
+    seed_aln = dict(seed_alignments)[seed_aln]
     r = dstore.filtered(pattern=f"*{seed_aln}*")
     if len(r) == 0:
         raise ValueError(f"{seed_aln=!r} missing from {inpath!r}")
@@ -243,7 +244,7 @@ def make_toe_synthetic(
     # figure out the fg edge
     fg_edge, _, _ = get_jsd(obs_aln)
     bg_edges = list({fg_edge} ^ set(obs_aln.names))
-    if test_run:
+    if testrun:
         opt_args = {"max_restarts": 1, "max_evaluations": 10, "limit_action": "ignore"}
     else:
         opt_args = {"max_restarts": 5}
@@ -271,13 +272,15 @@ def make_toe_synthetic(
     rng = Random()
     rng.seed(seed)
 
+    sim_length = int(sim_length)
     for i in range(num_reps):
-        sim_aln = lf.simulate_alignment(length=sim_length, seed=rng)
+        sim_aln = lf.simulate_alignment(sequence_length=sim_length, seed=rng)
         sim_aln.info.fg_edge = fg_edge
-        sim_aln.info.source = f"{seed_aln}-sim-{i}"
-        writer.write(sim_aln.info.source, sim_aln)
+        sim_aln.info.source = f"{seed_aln}-sim-{i}.json"
+        writer(sim_aln)
 
+    log_file_path = LOGGER.log_file_path
     LOGGER.shutdown()
-    writer.data_store.add_file(LOGGER.log_file_path, cleanup=True, keep_suffix=True)
+    writer.data_store.add_file(log_file_path, cleanup=True, keep_suffix=True)
     writer.data_store.close()
     return True
