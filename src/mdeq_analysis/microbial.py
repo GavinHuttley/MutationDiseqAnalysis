@@ -2,6 +2,7 @@
 import pathlib
 
 from dataclasses import asdict, dataclass
+from random import Random
 
 from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
@@ -55,6 +56,7 @@ def filter_alignments(indir, outpath, suffix, limit, overwrite):
     )
     app = loader + just_nucs + writer
     r = app.apply_to(dstore, cleanup=True, show_progress=True, logger=LOGGER)
+    app.data_store.close()
     return True
 
 
@@ -184,4 +186,5 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
         parallel=parallel,
     )
     print(app.data_store.describe)
+    app.data_store.close()
     return True
