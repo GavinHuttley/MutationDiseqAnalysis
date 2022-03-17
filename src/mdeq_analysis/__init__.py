@@ -7,10 +7,9 @@ try:
     from wakepy import set_keepawake, unset_keepawake
 except NotImplementedError:
     # probably on linux where this library doesn't work
-    def dummy(**kwargs):
-        ...
+    make_none = type(None)
 
-    set_keepawake, unset_keepawake = dummy, dummy
+    set_keepawake, unset_keepawake = make_none, make_none
 
 
 from mdeq_analysis import microbial as micro
