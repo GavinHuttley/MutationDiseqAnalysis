@@ -7,7 +7,12 @@ from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
 from mdeq.model import mles_within_bounds
-from mdeq.utils import SerialisableMixin, foreground_from_jsd
+from mdeq.stationary_pi import get_stat_pi_via_eigen
+from mdeq.utils import (
+    SerialisableMixin,
+    configure_parallel,
+    foreground_from_jsd,
+)
 from numpy.linalg import cond, eig
 from scitrack import CachingLogger
 
@@ -81,17 +86,10 @@ def fit_gn(inpath, outpath, parallel, mpi, limit, overwrite, verbose):
     app = loader + gn + writer
     dstore = io.get_data_store(inpath, limit=limit)
 
-    mpi = None if mpi < 2 else mpi  # no point in MPI if < 2 processors
-    parallel = True if mpi else parallel
-    par_kw = dict(max_workers=mpi, use_mpi=True) if mpi else None
+    kwargs = configure_parallel(parallel=parallel, mpi=mpi)
 
     r = app.apply_to(
-        dstore,
-        cleanup=True,
-        parallel=parallel,
-        logger=LOGGER,
-        par_kw=par_kw,
-        show_progress=verbose >= 2,
+        dstore, cleanup=True, logger=LOGGER, show_progress=verbose >= 2, **kwargs
     )
 
     print(app.data_store.describe)

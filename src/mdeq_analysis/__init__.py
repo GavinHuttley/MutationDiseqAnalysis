@@ -26,47 +26,34 @@ def main():
     """cli for analyses assocuated with mdeq"""
 
 
-_inpath = click.option(
-    "-i", "--inpath", type=click.Path(exists=True), help="path to a tinydb"
+_seed_alignment = click.option(
+    "-sa",
+    "--seed_alignment",
+    type=click.Choice(["hi-hi", "hi-lo", "lo-hi", "lo-lo"]),
+    required=True,
+    help="specify seed alignment in terms of relative jsd, entropy",
 )
-_outpath = click.option(
-    "-o",
-    "--outpath",
-    type=click.Path(),
-    help="path to create a result tinydb",
-)
-
-_verbose = click.option("-v", "--verbose", count=True)
-_limit = click.option("-L", "--limit", type=int, default=None)
-_mpi = click.option(
-    "-m", "--mpi", type=int, default=0, help="use MPI with this number of procs"
-)
-_overwrite = click.option("-O", "--overwrite", is_flag=True)
-_parallel = click.option(
-    "-p",
-    "--parallel",
-    is_flag=True,
-    help="run in parallel (on single machine)",
-)
-_testrun = click.option(
-    "-t",
-    "--testrun",
-    is_flag=True,
-    help="don't write anything, quick (but inaccurate) optimisation",
-)
-
-
-@main.command()
-@click.option(
+_sim_length = click.option("-s", "--limit", type=int, default=None)
+_indir = click.option(
     "-d",
     "--indir",
     type=click.Path(exists=True),
     help="directory containing input data",
 )
+_outdir = click.option(
+    "-od",
+    "--outdir",
+    type=click.Path(),
+    help="directory to write output",
+)
+
+
+@main.command()
+@_indir
 @click.option("-s", "--suffix", help="suffix of files within indir to be loaded")
-@click.option("-o", "--outpath", type=click.Path(), help="path to write tinydb output")
-@_limit
-@_overwrite
+@mdeq._outpath
+@mdeq._limit
+@mdeq._overwrite
 def filter_alignments(**kwargs):
     """filters sequence alignments"""
     result = micro.filter_alignments(**kwargs)
@@ -77,13 +64,13 @@ def filter_alignments(**kwargs):
 
 
 @main.command()
-@_inpath
-@_outpath
-@_parallel
-@_mpi
-@_limit
-@_overwrite
-@_verbose
+@mdeq._inpath
+@mdeq._outpath
+@mdeq._parallel
+@mdeq._mpi
+@mdeq._limit
+@mdeq._overwrite
+@mdeq._verbose
 def microbial_fit_gn(**kwargs):
     """fits GN to microbial 16S data"""
     set_keepawake(keep_screen_awake=False)
@@ -96,12 +83,12 @@ def microbial_fit_gn(**kwargs):
 
 
 @main.command()
-@_inpath
-@_outpath
-@_parallel
-@_limit
-@_overwrite
-@_verbose
+@mdeq._inpath
+@mdeq._outpath
+@mdeq._parallel
+@mdeq._limit
+@mdeq._overwrite
+@mdeq._verbose
 def microbial_gn_stats(**kwargs):
     """generate stats from GN fits to microbial 16S data"""
     result = micro.gn_statistics(**kwargs)
