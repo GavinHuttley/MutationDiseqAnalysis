@@ -188,3 +188,96 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
     print(app.data_store.describe)
     app.data_store.close()
     return True
+
+
+# the selected seed alignments, keys are `jsd-entropy`
+
+seed_alignments = [
+    ("hi-hi", "197113_332182_17210"),
+    ("lo-hi", "198257_206396_13724"),
+    ("hi-lo", "200580_114946_573911"),
+    ("lo-lo", "758_443154_73021"),
+]
+
+
+def make_toe_synthetic(
+    inpath, outdir, seed_aln, seed, sim_length, num_reps, overwrite, verbose, test_run
+):
+    """simulate alignments under mixed general and stationary models
+
+    Parameters
+    ----------
+    inpath : str
+        data store containing observed alignment
+    outdir : str
+        dir to write output
+    seed_aln : str
+        name of alignment to be used as seed
+    seed : int
+        random number seed
+    sim_length : int
+        length of simulated alignment
+    num_reps : int
+        number of alignments to simulate
+    """
+    from cogent3.app import evo, io
+
+    LOGGER = CachingLogger(create_dir=True)
+
+    indir = pathlib.Path(indir)
+    outdir = pathlib.Path(outdir)
+    outpath = outdir / f"{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
+
+    LOGGER.log_args()
+
+    LOGGER.log_file_path = outdir / "mdeqasis-make_toe_synthetic.log"
+
+    LOGGER.input_file(inpath)
+
+    dstore = io.get_data_store(inpath)
+    r = dstore.filtered(pattern=f"*{seed_aln}*")
+    if len(r) == 0:
+        raise ValueError(f"{seed_aln=!r} missing from {inpath!r}")
+    loader = io.load_db()
+    obs_aln = loader(r[0])
+    # figure out the fg edge
+    fg_edge, _, _ = get_jsd(obs_aln)
+    bg_edges = list({fg_edge} ^ set(obs_aln.names))
+    if test_run:
+        opt_args = {"max_restarts": 1, "max_evaluations": 10, "limit_action": "ignore"}
+    else:
+        opt_args = {"max_restarts": 5}
+    gn = evo.model(
+        "GN",
+        sm_args=dict(optimise_motif_probs=True),
+        lf_args=dict(discrete_edges=bg_edges, expm="pade"),
+        opt_args=opt_args,
+        show_progress=verbose > 2,
+    )
+    lf = gn(obs_aln).lf
+
+    psub_fg = lf.get_psub_for_edge(fg_edge)
+    stat_pi_fg = get_stat_pi_via_eigen(psub_fg)
+
+    # these become the root probabilities so the fg edge is stationary in
+    # the synthetic data
+    pi = {base: stat_pi_fg[index] for index, base in enumerate(obs_aln.moltype)}
+    lf.set_motif_probs(pi)
+
+    writer = io.write_db(
+        outpath, create=True, if_exists="overwrite" if overwrite else "raise"
+    )
+    # make a seeded rng
+    rng = Random()
+    rng.seed(seed)
+
+    for i in range(num_reps):
+        sim_aln = lf.simulate_alignment(length=sim_length, seed=rng)
+        sim_aln.info.fg_edge = fg_edge
+        sim_aln.info.source = f"{seed_aln}-sim-{i}"
+        writer.write(sim_aln.info.source, sim_aln)
+
+    LOGGER.shutdown()
+    writer.data_store.add_file(LOGGER.log_file_path, cleanup=True, keep_suffix=True)
+    writer.data_store.close()
+    return True
