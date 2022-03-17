@@ -1,5 +1,7 @@
 """scripts for analysis steps associated with the mdeq app"""
 import mdeq  # isort: skip  # make sure this stays at the top
+import inspect
+
 import click
 
 
@@ -57,10 +59,11 @@ _outdir = click.option(
 def filter_alignments(**kwargs):
     """filters sequence alignments"""
     result = micro.filter_alignments(**kwargs)
+    func_name = inspect.stack()[0].function
     if result:
-        click.secho("Done!", fg="green")
+        click.secho(f"{func_name!r} is done!", fg="green")
     else:
-        click.secho("Failed!", fg="red")
+        click.secho(f"{func_name!r} failed!", fg="red")
 
 
 @main.command()
@@ -75,10 +78,11 @@ def microbial_fit_gn(**kwargs):
     """fits GN to microbial 16S data"""
     set_keepawake(keep_screen_awake=False)
     result = micro.fit_gn(**kwargs)
+    func_name = inspect.stack()[0].function
     if result:
-        click.secho("Done!", fg="green")
+        click.secho(f"{func_name!r} is done!", fg="green")
     else:
-        click.secho("Failed!", fg="red")
+        click.secho(f"{func_name!r} failed!", fg="red")
     unset_keepawake()
 
 
@@ -92,10 +96,31 @@ def microbial_fit_gn(**kwargs):
 def microbial_gn_stats(**kwargs):
     """generate stats from GN fits to microbial 16S data"""
     result = micro.gn_statistics(**kwargs)
+    func_name = inspect.stack()[0].function
     if result:
-        click.secho("Done!", fg="green")
+        click.secho(f"{func_name!r} is done!", fg="green")
     else:
-        click.secho("Failed!", fg="red")
+        click.secho(f"{func_name!r} failed!", fg="red")
+
+
+@main.command()
+@mdeq._inpath
+@_outdir
+@_seed_alignment
+@mdeq._seed
+@_sim_length
+@mdeq._num_reps
+@mdeq._overwrite
+@mdeq._verbose
+@mdeq._testrun
+def microbial_toe_synthetic(**kwargs):
+    """generate stats from GN fits to microbial 16S data"""
+    result = micro.make_toe_synthetic(**kwargs)
+    func_name = inspect.stack()[0].function
+    if result:
+        click.secho(f"{func_name!r} is done!", fg="green")
+    else:
+        click.secho(f"{func_name!r} failed!", fg="red")
 
 
 if __name__ == "__main__":
