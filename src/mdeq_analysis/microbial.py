@@ -234,8 +234,7 @@ def fg_GSN_synthetic(
 
     LOGGER.log_args()
 
-    LOGGER.log_file_path = outdir / "mdeqasis-make_toe_synthetic.log"
-
+    LOGGER.log_file_path = f"{outpath.stem}.log"
     LOGGER.input_file(inpath)
 
     dstore = io.get_data_store(inpath)
