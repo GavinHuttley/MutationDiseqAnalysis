@@ -120,7 +120,7 @@ def microbial_gn_stats(**kwargs):
 @mdeq._verbose
 @mdeq._testrun
 def microbial_fg_gsn_synthetic(**kwargs):
-    """generate stats from GN fits to microbial 16S data"""
+    """generate synthetic alignments from GN fits to microbial 16S data"""
     result = micro.fg_GSN_synthetic(**kwargs)
     func_name = inspect.stack()[0].function
     if result:
