@@ -1,10 +1,9 @@
 """sampling and analysis of microbial data"""
-import pathlib
 import inspect
+import pathlib
 
 from dataclasses import asdict, dataclass
-from random import Random
-from tqdm import tqdm
+
 from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
@@ -15,8 +14,11 @@ from mdeq.utils import (
     configure_parallel,
     foreground_from_jsd,
 )
+from numpy import iinfo, int64, random
 from numpy.linalg import cond, eig
+from numpy.random import default_rng
 from scitrack import CachingLogger
+from tqdm import tqdm
 
 
 __author__ = "Gavin Huttley"
@@ -272,12 +274,21 @@ def fg_GSN_synthetic(
         outpath, create=True, if_exists="overwrite" if overwrite else "raise"
     )
     # make a seeded rng
-    rng = Random()
-    rng.seed(seed)
-
+    rng = random.default_rng(seed=seed)
+    # we will use numpy to select a new seed each iteration, so we identify
+    # the upper limit to choose from as the maximum for a 64-bit integer
+    max_int = iinfo(int64).max
+    sim_seeds = set()
     sim_length = int(sim_length)
     for i in tqdm(range(num_reps)):
-        sim_aln = lf.simulate_alignment(sequence_length=sim_length, seed=rng)
+        while True:
+            # ensure the seed is unique
+            sim_seed = rng.choice(max_int)
+            if sim_seed not in sim_seeds:
+                sim_seeds.add(sim_seed)
+                break
+
+        sim_aln = lf.simulate_alignment(sequence_length=sim_length, seed=sim_seed)
         sim_aln.info.fg_edge = fg_edge
         sim_aln.info.source = f"{seed_aln}-sim-{i}.json"
         writer(sim_aln)
