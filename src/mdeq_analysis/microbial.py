@@ -203,8 +203,8 @@ seed_alignments = [
 ]
 
 
-def fg_GSN_synthetic(
     inpath, outdir, seed_aln, seed, sim_length, num_reps, overwrite, verbose, testrun
+def GSN_synthetic(
 ):
     """simulate alignments under mixed general and stationary models
 
