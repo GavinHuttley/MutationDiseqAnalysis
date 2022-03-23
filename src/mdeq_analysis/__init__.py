@@ -1,6 +1,10 @@
 """scripts for analysis steps associated with the mdeq app"""
 import mdeq  # isort: skip  # make sure this stays at the top
+
+
 import inspect
+
+from pathlib import Path
 
 import click
 
@@ -112,6 +116,7 @@ def microbial_gn_stats(**kwargs):
 @main.command()
 @mdeq._inpath
 @_outdir
+@mdeq._click_options._just_continuous
 @_seed_aln
 @mdeq._seed
 @_sim_length

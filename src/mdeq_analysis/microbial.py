@@ -203,8 +203,17 @@ seed_alignments = [
 ]
 
 
-    inpath, outdir, seed_aln, seed, sim_length, num_reps, overwrite, verbose, testrun
 def GSN_synthetic(
+    inpath,
+    outdir,
+    just_continuous,
+    seed_aln,
+    seed,
+    sim_length,
+    num_reps,
+    overwrite,
+    verbose,
+    testrun,
 ):
     """simulate alignments under mixed general and stationary models
 
@@ -214,6 +223,9 @@ def GSN_synthetic(
         data store containing observed alignment
     outdir : str
         dir to write output
+    just_continuous : bool
+        if True, only continuous-time process across entire tree and a GSN
+        model will be fit
     seed_aln : str
         name of alignment to be used as seed
     seed : int
@@ -229,10 +241,15 @@ def GSN_synthetic(
 
     inpath = pathlib.Path(inpath)
     outdir = pathlib.Path(outdir)
-    outpath = (
-        outdir
-        / f"{inspect.stack()[0].function}-{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
-    )
+    func_name = inspect.stack()[0].function
+    if just_continuous:
+        outpath = (
+            outdir / f"{func_name}-{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
+        )
+    else:
+        outpath = (
+            outdir / f"fg_{func_name}-{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
+        )
 
     LOGGER.log_args()
 
@@ -246,29 +263,12 @@ def GSN_synthetic(
         raise ValueError(f"{seed_aln=!r} missing from {inpath!r}")
     loader = io.load_db()
     obs_aln = loader(r[0])
-    # figure out the fg edge
-    fg_edge, _, _ = get_jsd(obs_aln)
-    bg_edges = list({fg_edge} ^ set(obs_aln.names))
-    if testrun:
-        opt_args = {"max_restarts": 1, "max_evaluations": 10, "limit_action": "ignore"}
-    else:
-        opt_args = {"max_restarts": 5}
-    gn = evo.model(
-        "GN",
-        sm_args=dict(optimise_motif_probs=True),
-        lf_args=dict(discrete_edges=bg_edges, expm="pade"),
-        opt_args=opt_args,
-        show_progress=verbose > 2,
-    )
-    lf = gn(obs_aln).lf
+    # model foreground means has discrete edges for background
+    has_discrete = not just_continuous
+    fg_edge, lf = _get_null_generator(obs_aln, has_discrete, testrun, verbose)
 
-    psub_fg = lf.get_psub_for_edge(fg_edge)
-    stat_pi_fg = get_stat_pi_via_eigen(psub_fg)
-
-    # these become the root probabilities so the fg edge is stationary in
-    # the synthetic data
-    pi = {base: stat_pi_fg[index] for index, base in enumerate(obs_aln.moltype)}
-    lf.set_motif_probs(pi)
+    if verbose > 1:
+        print(lf)
 
     writer = io.write_db(
         outpath, create=True, if_exists="overwrite" if overwrite else "raise"
@@ -289,8 +289,10 @@ def GSN_synthetic(
                 break
 
         sim_aln = lf.simulate_alignment(sequence_length=sim_length, seed=sim_seed)
-        sim_aln.info.fg_edge = fg_edge
         sim_aln.info.source = f"{seed_aln}-sim-{i}.json"
+        if has_discrete:
+            sim_aln.info.fg_edge = fg_edge
+
         writer(sim_aln)
 
     log_file_path = LOGGER.log_file_path
@@ -298,3 +300,41 @@ def GSN_synthetic(
     writer.data_store.add_file(log_file_path, cleanup=True, keep_suffix=True)
     writer.data_store.close()
     return True
+
+
+def _get_null_generator(obs_aln, has_discrete, testrun, verbose):
+    # figure out the fg edge
+    if has_discrete:
+        model_name = "GN"
+        fg_edge, _, _ = get_jsd(obs_aln)
+        bg_edges = list({fg_edge} ^ set(obs_aln.names))
+        lf_args = dict(discrete_edges=bg_edges, expm="pade")
+    else:
+        model_name = "GSN"
+        lf_args = dict(expm="pade")
+        fg_edge = None
+
+    if testrun:
+        opt_args = {"max_restarts": 1, "max_evaluations": 10, "limit_action": "ignore"}
+    else:
+        opt_args = {"max_restarts": 5, "tolerance": 1e-8}
+
+    gn = evo.model(
+        model_name,
+        sm_args=dict(optimise_motif_probs=True),
+        lf_args=lf_args,
+        opt_args=opt_args,
+        show_progress=verbose > 2,
+    )
+    lf = gn(obs_aln).lf
+    if not has_discrete:
+        return None, lf
+
+    psub_fg = lf.get_psub_for_edge(fg_edge)
+    stat_pi_fg = get_stat_pi_via_eigen(psub_fg)
+    # these become the root probabilities so the fg edge is stationary in
+    # the synthetic data
+    pi = {base: stat_pi_fg[index] for index, base in enumerate(obs_aln.moltype)}
+    lf.set_motif_probs(pi)
+    return fg_edge, lf
+
