@@ -2,11 +2,15 @@
 import inspect
 import pathlib
 
+from collections import defaultdict
 from dataclasses import asdict, dataclass
 
+from cogent3 import make_table
+from cogent3.app import evo, io
 from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
+from mdeq.lrt import ALT_TOE, NULL_TOE
 from mdeq.model import mles_within_bounds
 from mdeq.stationary_pi import get_stat_pi_via_eigen
 from mdeq.utils import (
@@ -16,7 +20,6 @@ from mdeq.utils import (
 )
 from numpy import iinfo, int64, random
 from numpy.linalg import cond, eig
-from numpy.random import default_rng
 from scitrack import CachingLogger
 from tqdm import tqdm
 
@@ -338,3 +341,44 @@ def _get_null_generator(obs_aln, has_discrete, testrun, verbose):
     lf.set_motif_probs(pi)
     return fg_edge, lf
 
+
+def get_pvalues(dstore) -> defaultdict:
+    """returns chisq_pvals and bootstrap_pvals"""
+    loader = io.load_db()
+    pvals = defaultdict(list)
+    for m in tqdm(dstore):
+        obj = loader(m)
+        pval = obj.observed.get_hypothesis_result(NULL_TOE, ALT_TOE).pvalue
+        if pval is None:
+            # fitting issue
+            continue
+        pvals["chisq_pvals"].append(pval)
+        pvals["bootstrap_pvals"].append(obj.pvalue)
+        pvals["source"].append(obj.source)
+    return pvals
+
+
+def write_quantiles(path, limit=None, overwrite=False, verbose=0):
+    """writes tsv file corresponding to path"""
+    tsv_path = path.parent / f"{path.stem}.tsv"
+    if tsv_path.exists() and not overwrite:
+        return tsv_path
+
+    if verbose:
+        print(f"loading {limit} dstore records")
+
+    limit = limit or 1000
+    dstore = io.get_data_store(path, limit=limit)
+    if len(dstore) != limit:
+        print(f"{path.stem} has {limit - len(dstore)} incompleted results!")
+        print(dstore.summary_incomplete)
+        if len(dstore) == 0:
+            return False
+
+    if verbose:
+        print("getting p-values")
+
+    pvals = get_pvalues(dstore)
+    table = make_table(data=pvals)
+    table.write(tsv_path)
+    return path

@@ -2,6 +2,7 @@
 import mdeq  # isort: skip  # make sure this stays at the top
 
 
+import glob
 import inspect
 
 from pathlib import Path
@@ -132,6 +133,40 @@ def microbial_fg_gsn_synthetic(**kwargs):
         click.secho(f"{func_name!r} is done!", fg="green")
     else:
         click.secho(f"{func_name!r} failed!", fg="red")
+
+
+@main.command()
+@click.option("-d", "--indir", help="more general path allowing glob patterns")
+@mdeq._limit
+@mdeq._overwrite
+@mdeq._verbose
+def microbial_extract_pvalues(**kwargs):
+    """extracts p-values from TOE results"""
+    from cogent3.app.composable import user_function
+    from cogent3.util.parallel import PicklableAndCallable
+    from cogent3.util.parallel import imap as par_imap
+
+    indir = kwargs.pop("indir")
+    verbose = kwargs.pop("verbose")
+    func_name = inspect.stack()[0].function
+
+    if "*" not in indir:
+        paths = list(Path(indir).glob("*.tinydb"))
+    else:
+        paths = [Path(p) for p in glob.glob(indir) if p.endswith("tinydb")]
+
+    if verbose:
+        print(paths)
+
+    set_keepawake(keep_screen_awake=False)
+
+    for i, path in enumerate(map(lambda x: micro.write_quantiles(x, **kwargs), paths)):
+        if path:
+            click.secho(f"{func_name!r} success for {paths[i].name!r}", fg="green")
+        else:
+            click.secho(f"{func_name!r} failed  for {paths[i].name!r}", fg="red")
+
+    unset_keepawake()
 
 
 if __name__ == "__main__":
