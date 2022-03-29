@@ -40,9 +40,8 @@ def annotated_subplot(fig, seed, col, row, x, y):
     )
 
 
-def get_colour_for_length(length: str) -> str:
+def get_colour_for_length(length: str, alpha: float = 0.4) -> str:
     """returns color for length"""
-    alpha = 0.4
     return {
         "300bp": f"rgba(0,174,219,{alpha})",
         "3000bp": f"rgba(255,196,37,{alpha})",
