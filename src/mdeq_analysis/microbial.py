@@ -382,3 +382,43 @@ def write_quantiles(path, limit=None, overwrite=False, verbose=0):
     table = make_table(data=pvals)
     table.write(tsv_path)
     return path
+
+
+def generate_convergence(
+    path, outdir, wrt_nstat, limit=None, overwrite=False, verbose=0
+):
+    """produces nabla statistics from TOE results"""
+    from mdeq.convergence import bootstrap_to_nabla
+
+    name_suffix = (
+        "nstat_scale-convergence.tinydb"
+        if wrt_nstat
+        else "standard_scale-convergence.tinydb"
+    )
+    outpath = outdir / f"{path.stem}-{name_suffix}"
+    if outpath.exists() and not overwrite:
+        return outpath
+
+    dstore = io.get_data_store(path, limit=limit)
+    limit = limit or 1000
+    if len(dstore) != limit:
+        print(f"{path.stem} has {limit - len(dstore)} incompleted results!")
+        print(dstore.summary_incomplete)
+        if len(dstore) == 0:
+            return False
+
+    if verbose:
+        print("getting nabla values")
+
+    loader = io.load_db()
+    conv = bootstrap_to_nabla()
+    writer = io.write_db(outpath, create=True, if_exists="overwrite")
+    app = loader + conv + writer
+    r = app.apply_to(
+        dstore,
+        cleanup=True,
+        show_progress=verbose > 1,
+    )
+    print(app.data_store.describe)
+    app.data_store.close()
+    return True

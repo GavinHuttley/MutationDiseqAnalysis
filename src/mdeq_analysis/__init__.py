@@ -56,7 +56,7 @@ _indir = click.option(
 _outdir = click.option(
     "-od",
     "--outdir",
-    type=click.Path(),
+    type=Path,
     help="directory to write output",
 )
 
@@ -135,32 +135,64 @@ def microbial_fg_gsn_synthetic(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
+def _all_tinydbs(*args):
+    indir = args[-1]
+    if "*" not in indir:
+        return list(Path(indir).glob("*.tinydb"))
+
+    return [Path(p) for p in glob.glob(indir) if p.endswith("tinydb")]
+
+
+_glob_indir = click.option(
+    "-d",
+    "--indir",
+    callback=_all_tinydbs,
+    help="more general path allowing glob patterns",
+)
+
+
 @main.command()
-@click.option("-d", "--indir", help="more general path allowing glob patterns")
+@_glob_indir
 @mdeq._limit
 @mdeq._overwrite
 @mdeq._verbose
 def microbial_extract_pvalues(**kwargs):
     """extracts p-values from TOE results"""
-    from cogent3.app.composable import user_function
-    from cogent3.util.parallel import PicklableAndCallable
-    from cogent3.util.parallel import imap as par_imap
-
-    indir = kwargs.pop("indir")
+    paths = kwargs.pop("indir")
     verbose = kwargs.pop("verbose")
     func_name = inspect.stack()[0].function
-
-    if "*" not in indir:
-        paths = list(Path(indir).glob("*.tinydb"))
-    else:
-        paths = [Path(p) for p in glob.glob(indir) if p.endswith("tinydb")]
-
     if verbose:
         print(paths)
 
     set_keepawake(keep_screen_awake=False)
 
     for i, path in enumerate(map(lambda x: micro.write_quantiles(x, **kwargs), paths)):
+        if path:
+            click.secho(f"{func_name!r} success for {paths[i].name!r}", fg="green")
+        else:
+            click.secho(f"{func_name!r} failed  for {paths[i].name!r}", fg="red")
+
+    unset_keepawake()
+
+
+@main.command()
+@_glob_indir
+@_outdir
+@mdeq._wrt_nstat
+@mdeq._overwrite
+@mdeq._verbose
+def microbial_nabla(**kwargs):
+    """generate nabla statistics from GN fits of TOE boostrap results on null data"""
+    paths = kwargs.pop("indir")
+    func_name = inspect.stack()[0].function
+    if kwargs["verbose"]:
+        print(paths)
+
+    set_keepawake(keep_screen_awake=False)
+
+    for i, path in enumerate(
+        map(lambda x: micro.generate_convergence(x, **kwargs), paths)
+    ):
         if path:
             click.secho(f"{func_name!r} success for {paths[i].name!r}", fg="green")
         else:
