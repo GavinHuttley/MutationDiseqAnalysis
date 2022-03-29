@@ -179,6 +179,7 @@ def microbial_extract_pvalues(**kwargs):
 @_glob_indir
 @_outdir
 @mdeq._wrt_nstat
+@mdeq._limit
 @mdeq._overwrite
 @mdeq._verbose
 def microbial_nabla(**kwargs):
