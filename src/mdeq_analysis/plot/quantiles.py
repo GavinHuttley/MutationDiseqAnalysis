@@ -23,9 +23,9 @@ def load_quantiles(path, col="chisq_pvals"):
 _show_legend = set()
 
 
-def get_trace(table, col, name):
+def get_trace(table, col, name, alpha):
     """get's scatter trace of quantiles"""
-    color = util.get_colour_for_length(name)
+    color = util.get_colour_for_length(name, alpha)
     showlegend = name not in _show_legend
     _show_legend.add(name)
     return dict(
@@ -33,20 +33,26 @@ def get_trace(table, col, name):
         y=table.columns[col],
         name=name,
         type="scatter",
-        mode="markers",
+        mode="lines",
+        line=dict(
+            width=2,
+            color=color,
+            shape="spline",
+            smoothing=1.3,
+        ),
         marker=dict(color=color, size=4),
         legendgroup=name,
         showlegend=showlegend,
     )
 
 
-def get_quantile_fig(paths: Path, stat: str):
+def get_quantile_fig(paths: Path, stat: str, alpha: float = 0.4):
     """returns scatter subplot of quantiles"""
     grouped_traces = defaultdict(list)
     for path in paths:
         seed, bp = util.path_components(path)
         table = load_quantiles(path)
-        grouped_traces[seed].append(get_trace(table, stat, bp))
+        grouped_traces[seed].append(get_trace(table, stat, bp, alpha))
 
     fig = make_subplots(
         rows=2,
@@ -54,7 +60,7 @@ def get_quantile_fig(paths: Path, stat: str):
         shared_xaxes=True,
         shared_yaxes=True,
         x_title="Theoretical Quantiles",
-        y_title="<i>p</i>-value",
+        y_title=r"$p-\text{value }(\chi^2)$",
         vertical_spacing=0.05,
         horizontal_spacing=0.05,
     )
@@ -64,7 +70,9 @@ def get_quantile_fig(paths: Path, stat: str):
 
     for seed, (col, row) in col_row.items():
         traces = util.keyed_traces(grouped_traces[seed])
-        for size in ("300bp", "3000bp", "30000bp"):
+        # the following order is because of plotly behaviour
+        # it produces the legend in the correct order
+        for size in ("300bp", "30000bp", "3000bp"):
             trace = traces.get(size, None)
             if trace is None:
                 continue
