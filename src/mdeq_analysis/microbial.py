@@ -10,9 +10,9 @@ from cogent3.app import evo, io
 from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
-from mdeq.toe import ALT_TOE, NULL_TOE
 from mdeq.model import mles_within_bounds
 from mdeq.stationary_pi import get_stat_pi_via_eigen
+from mdeq.toe import ALT_TOE, NULL_TOE
 from mdeq.utils import (
     SerialisableMixin,
     configure_parallel,
