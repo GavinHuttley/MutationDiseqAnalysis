@@ -202,5 +202,26 @@ def microbial_nabla(**kwargs):
     unset_keepawake()
 
 
+@main.command()
+@_glob_indir
+@mdeq._limit
+@mdeq._overwrite
+@mdeq._verbose
+@mdeq._testrun
+def microbial_aeop_locations(**kwargs):
+    """generates a synthetic locations file for alignments at inpath"""
+    func_name = inspect.stack()[0].function
+    paths = kwargs.pop("indir")
+    for path in paths:
+        result = micro.make_synthetic_aeop_locations(path, **kwargs)
+        if result:
+            click.secho(f"{func_name!r} wrote {result!r}!", fg="green")
+        else:
+            click.secho(f"{func_name!r} failed for {path!r}!", fg="red")
+
+        if kwargs["testrun"]:
+            break
+
+
 if __name__ == "__main__":
     main()

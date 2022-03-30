@@ -422,3 +422,43 @@ def generate_convergence(
     print(app.data_store.describe)
     app.data_store.close()
     return True
+
+
+def make_synthetic_aeop_locations(
+    inpath,
+    limit,
+    overwrite,
+    verbose,
+    testrun,
+):
+    """creates synthetic locations suitable for input into mdeq aeop
+    for the alignments at inpath
+
+    Notes
+    -----
+    To ensure independence of analysed results, the locations file
+    assigns 2 alignments to a unique 'chromosome'!
+    Replaces the tinydb suffix for tsv.
+    """
+    outpath = inpath.parent / pathlib.Path(f"locations-{inpath.stem}.tsv")
+    if outpath.exists() and not overwrite:
+        return outpath
+
+    dstore = io.get_data_store(inpath, limit=limit)
+    loader = io.load_db()
+    names = [pathlib.Path(loader(m).info.source).stem for m in dstore]
+    if verbose:
+        print(names[:6])
+
+    records = []
+    for i in range(0, len(names), 2):
+        pair = names[i : i + 2]
+        records.extend([[n, i + 1, j] for j, n in enumerate(pair)])
+    table = make_table(header=["name", "coord_name", "start"], data=records)
+    if verbose:
+        print(table[:6])
+
+    if not testrun:
+        table.write(outpath)
+
+    return outpath
