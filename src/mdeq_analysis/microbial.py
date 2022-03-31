@@ -26,8 +26,17 @@ from tqdm import tqdm
 
 __author__ = "Gavin Huttley"
 __credits__ = ["Kath Caley", "Gavin Huttley"]
-
 __version__ = "2022.03.14"
+
+
+def load_seed_alignment(inpath, seed_aln):
+    """loads the alignment with matching name to seed_aln"""
+    dstore = io.get_data_store(inpath)
+    r = dstore.filtered(pattern=f"*{seed_aln}*")
+    if len(r) == 0:
+        raise ValueError(f"{seed_aln=!r} missing from {inpath!r}")
+    loader = io.load_db()
+    return loader(r[0])
 
 
 def _make_name(x):
@@ -259,13 +268,7 @@ def GSN_synthetic(
     LOGGER.log_file_path = f"{outpath.stem}.log"
     LOGGER.input_file(inpath)
 
-    dstore = io.get_data_store(inpath)
-    seed_aln = dict(seed_alignments)[seed_aln]
-    r = dstore.filtered(pattern=f"*{seed_aln}*")
-    if len(r) == 0:
-        raise ValueError(f"{seed_aln=!r} missing from {inpath!r}")
-    loader = io.load_db()
-    obs_aln = loader(r[0])
+    obs_aln = load_seed_alignment(inpath, dict(seed_alignments)[seed_aln])
     # model foreground means has discrete edges for background
     has_discrete = not just_continuous
     fg_edge, lf = _get_null_generator(obs_aln, has_discrete, testrun, verbose)
@@ -462,3 +465,85 @@ def make_synthetic_aeop_locations(
         table.write(outpath)
 
     return outpath
+
+
+seed_outgroup = {
+    "hi_hi": "197113",
+    "hi_lo": "200580",
+    "lo_hi": "198257",
+    "lo_lo": "758",
+}
+
+
+def make_synthetic_teop(
+    inpath,
+    outdir,
+    seed_aln,
+    seed,
+    sim_length,
+    num_reps,
+    overwrite,
+    verbose,
+    testrun,
+):
+    """creates synthetic alignments under teop null from seed alignment
+
+    Notes
+    -----
+    The null model is one in which the ingroup have the same process, which
+    differs from the outgroup.
+    """
+    from mdeq.eop import temporal_eop
+
+    LOGGER = CachingLogger(create_dir=True)
+    LOGGER.log_args()
+
+    outpath = outdir / pathlib.Path(
+        f"teop-{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
+    )
+    if outpath.exists() and not overwrite:
+        return outpath
+
+    LOGGER.log_file_path = f"{outpath.stem}.log"
+    LOGGER.input_file(inpath)
+
+    seed_name = dict(seed_alignments)[seed_aln]
+    obs_aln = load_seed_alignment(inpath, seed_name)
+
+    ingroup = set(obs_aln.names) ^ {seed_outgroup[seed_aln]}
+
+    teop = temporal_eop(
+        ingroup,
+    )
+    writer = io.write_db(
+        outpath, create=True, if_exists="overwrite" if overwrite else "raise"
+    )
+
+    # make a seeded rng
+    rng = random.default_rng(seed=seed)
+    # we will use numpy to select a new seed each iteration, so we identify
+    # the upper limit to choose from as the maximum for a 64-bit integer
+    max_int = iinfo(int64).max
+    sim_seeds = set()
+
+    sim_length = int(sim_length)
+    fitted = teop(obs_aln)
+    simulator = fitted.null.lf.simulate_alignment
+    for i in tqdm(range(num_reps)):
+        while True:
+            # ensure the seed is unique
+            sim_seed = rng.choice(max_int)
+            if sim_seed not in sim_seeds:
+                sim_seeds.add(sim_seed)
+                break
+
+        sim_aln = simulator(sequence_length=sim_length, seed=sim_seed)
+        sim_aln.info.source = f"{seed_name}-sim-{i}.json"
+        writer(sim_aln)
+
+    log_file_path = LOGGER.log_file_path
+    LOGGER.shutdown()
+    writer.data_store.add_file(log_file_path, cleanup=True, keep_suffix=True)
+    writer.data_store.close()
+    print(writer.data_store.describe)
+    return True

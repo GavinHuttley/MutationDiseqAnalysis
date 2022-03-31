@@ -223,5 +223,25 @@ def microbial_aeop_locations(**kwargs):
             break
 
 
+@main.command()
+@mdeq._inpath
+@_outdir
+@_seed_aln
+@mdeq._seed
+@_sim_length
+@mdeq._num_reps
+@mdeq._overwrite
+@mdeq._verbose
+@mdeq._testrun
+def microbial_teop_synthetic(**kwargs):
+    """generate synthetic alignments from GN fits to microbial 16S data"""
+    result = micro.make_synthetic_teop(**kwargs)
+    func_name = inspect.stack()[0].function
+    if result:
+        click.secho(f"{func_name!r} is done!", fg="green")
+    else:
+        click.secho(f"{func_name!r} failed!", fg="red")
+
+
 if __name__ == "__main__":
     main()
