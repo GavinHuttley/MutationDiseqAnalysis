@@ -244,5 +244,27 @@ def microbial_teop_synthetic(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
+@main.command()
+@_indir
+@click.option(
+    "-fb", "--fb_table", required=True, type=Path, help="flybase gene order table"
+)
+@mdeq._outpath
+@mdeq._limit
+@mdeq._overwrite
+@mdeq._verbose
+@mdeq._testrun
+def dros_filter_alignments(**kwargs):
+    """filters Drosophila group sequence alignments"""
+    from mdeq_analysis import drosophila as dros
+
+    result = dros.dros_sample_alignments(**kwargs)
+    func_name = inspect.stack()[0].function
+    if result:
+        click.secho(f"{func_name!r} is done!", fg="green")
+    else:
+        click.secho(f"{func_name!r} failed!", fg="red")
+
+
 if __name__ == "__main__":
     main()
