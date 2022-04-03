@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 
 from cogent3 import make_table
 from cogent3.app import evo, io
+from cogent3.app import result as c3result
 from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
@@ -356,14 +357,22 @@ def get_pvalues(dstore) -> defaultdict:
     """returns chisq_pvals and bootstrap_pvals"""
     loader = io.load_db()
     pvals = defaultdict(list)
+    is_hyp_result = None
     for m in track(dstore):
         obj = loader(m)
-        pval = obj.observed.get_hypothesis_result(NULL_TOE, ALT_TOE).pvalue
+        is_hyp_result = isinstance(obj, c3result.hypothesis_result)
+        if is_hyp_result:
+            pval = obj.pvalue
+        else:
+            pval = obj.observed.get_hypothesis_result(NULL_TOE, ALT_TOE).pvalue
+
         if pval is None:
             # fitting issue
             continue
+
         pvals["chisq_pvals"].append(pval)
-        pvals["bootstrap_pvals"].append(obj.pvalue)
+        if not is_hyp_result:
+            pvals["bootstrap_pvals"].append(obj.pvalue)
         pvals["source"].append(obj.source)
     return pvals
 
