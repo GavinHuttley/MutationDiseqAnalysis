@@ -1,11 +1,10 @@
 """scripts for analysis steps associated with the mdeq app"""
 import mdeq  # isort: skip  # make sure this stays at the top
-
-
 import glob
 import inspect
 
 from pathlib import Path
+from warnings import simplefilter
 
 import click
 
@@ -21,6 +20,8 @@ except NotImplementedError:
 
 from mdeq_analysis import microbial as micro
 
+
+simplefilter("ignore", category=UserWarning, append=True)
 
 __author__ = "Gavin Huttley"
 __credits__ = ["Gavin Huttley"]
