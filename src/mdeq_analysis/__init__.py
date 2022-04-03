@@ -19,6 +19,7 @@ except NotImplementedError:
 
 
 from mdeq_analysis import microbial as micro
+from mdeq_analysis import postprocess
 
 
 simplefilter("ignore", category=UserWarning, append=True)
@@ -157,7 +158,7 @@ _glob_indir = click.option(
 @mdeq._limit
 @mdeq._overwrite
 @mdeq._verbose
-def microbial_extract_pvalues(**kwargs):
+def extract_pvalues(**kwargs):
     """extracts p-values from TOE results"""
     paths = kwargs.pop("indir")
     verbose = kwargs.pop("verbose")
@@ -167,7 +168,9 @@ def microbial_extract_pvalues(**kwargs):
 
     set_keepawake(keep_screen_awake=False)
 
-    for i, path in enumerate(map(lambda x: micro.write_quantiles(x, **kwargs), paths)):
+    for i, path in enumerate(
+        map(lambda x: postprocess.write_quantiles(x, **kwargs), paths)
+    ):
         if path:
             click.secho(f"{func_name!r} success for {paths[i].name!r}", fg="green")
         else:
