@@ -17,11 +17,12 @@ from mdeq.utils import (
     SerialisableMixin,
     configure_parallel,
     foreground_from_jsd,
+    rich_display,
 )
 from numpy import iinfo, int64, random
 from numpy.linalg import cond, eig
+from rich.progress import track
 from scitrack import CachingLogger
-from tqdm import tqdm
 
 
 __author__ = "Gavin Huttley"
@@ -109,8 +110,11 @@ def fit_gn(inpath, outpath, parallel, mpi, limit, overwrite, verbose):
         dstore, cleanup=True, logger=LOGGER, show_progress=verbose >= 2, **kwargs
     )
 
-    print(app.data_store.describe)
     app.data_store.close()
+    rich_display(app.data_store.describe)
+    if len(app.data_store.incomplete) > 0 and verbose:
+        rich_display(app.data_store.summary_incomplete)
+
     return True
 
 
@@ -200,8 +204,11 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
         show_progress=verbose > 1,
         parallel=parallel,
     )
-    print(app.data_store.describe)
     app.data_store.close()
+    rich_display(app.data_store.describe)
+    if len(app.data_store.incomplete) > 0 and verbose:
+        rich_display(app.data_store.summary_incomplete)
+
     return True
 
 
@@ -286,7 +293,7 @@ def GSN_synthetic(
     max_int = iinfo(int64).max
     sim_seeds = set()
     sim_length = int(sim_length)
-    for i in tqdm(range(num_reps)):
+    for i in track(range(num_reps)):
         while True:
             # ensure the seed is unique
             sim_seed = rng.choice(max_int)
@@ -349,7 +356,7 @@ def get_pvalues(dstore) -> defaultdict:
     """returns chisq_pvals and bootstrap_pvals"""
     loader = io.load_db()
     pvals = defaultdict(list)
-    for m in tqdm(dstore):
+    for m in track(dstore):
         obj = loader(m)
         pval = obj.observed.get_hypothesis_result(NULL_TOE, ALT_TOE).pvalue
         if pval is None:
@@ -372,9 +379,9 @@ def write_quantiles(path, limit=None, overwrite=False, verbose=0):
 
     limit = limit or 1000
     dstore = io.get_data_store(path, limit=limit)
-    if len(dstore) != limit:
-        print(f"{path.stem} has {limit - len(dstore)} incompleted results!")
-        print(dstore.summary_incomplete)
+    if len(dstore.incomplete) > 0:
+        print(f"{path.stem} has {limit - len(dstore.incomplete)} incompleted results!")
+        rich_display(dstore.summary_incomplete)
         if len(dstore) == 0:
             return False
 
@@ -422,8 +429,11 @@ def generate_convergence(
         cleanup=True,
         show_progress=verbose > 1,
     )
-    print(app.data_store.describe)
     app.data_store.close()
+    rich_display(app.data_store.describe)
+    if len(app.data_store.incomplete) > 0 and verbose:
+        rich_display(app.data_store.summary_incomplete)
+
     return True
 
 
@@ -529,7 +539,7 @@ def make_synthetic_teop(
     sim_length = int(sim_length)
     fitted = teop(obs_aln)
     simulator = fitted.null.lf.simulate_alignment
-    for i in tqdm(range(num_reps)):
+    for i in track(range(num_reps)):
         while True:
             # ensure the seed is unique
             sim_seed = rng.choice(max_int)
@@ -545,5 +555,9 @@ def make_synthetic_teop(
     LOGGER.shutdown()
     writer.data_store.add_file(log_file_path, cleanup=True, keep_suffix=True)
     writer.data_store.close()
-    print(writer.data_store.describe)
+
+    rich_display(writer.data_store.describe)
+    if len(writer.data_store.incomplete) > 0 and verbose:
+        rich_display(writer.data_store.summary_incomplete)
+
     return True
