@@ -55,12 +55,6 @@ _indir = click.option(
     type=click.Path(exists=True),
     help="directory containing input data",
 )
-_outdir = click.option(
-    "-od",
-    "--outdir",
-    type=Path,
-    help="directory to write output",
-)
 
 
 @main.command()
@@ -118,7 +112,7 @@ def microbial_gn_stats(**kwargs):
 
 @main.command()
 @mdeq._inpath
-@_outdir
+@mdeq._click_options._outdir
 @mdeq._click_options._just_continuous
 @_seed_aln
 @mdeq._seed
@@ -181,7 +175,7 @@ def extract_pvalues(**kwargs):
 
 @main.command()
 @_glob_indir
-@_outdir
+@mdeq._click_options._outdir
 @mdeq._wrt_nstat
 @mdeq._limit
 @mdeq._overwrite
@@ -229,7 +223,7 @@ def microbial_aeop_locations(**kwargs):
 
 @main.command()
 @mdeq._inpath
-@_outdir
+@mdeq._click_options._outdir
 @_seed_aln
 @mdeq._seed
 @_sim_length
