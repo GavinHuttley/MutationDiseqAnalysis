@@ -263,5 +263,40 @@ def dros_filter_alignments(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
+@main.command()
+@click.option(
+    "-cd",
+    "--cds_indir",
+    required=True,
+    type=Path,
+    help="directory of unaligned CDS sequences",
+)
+@click.option(
+    "-id",
+    "--intron_indir",
+    required=True,
+    type=Path,
+    help="directory of ensembl aligned intron sequences",
+)
+@click.option(
+    "-md", "--metadata_path", required=True, type=Path, help="tsv gene order table"
+)
+@mdeq._outpath
+@mdeq._limit
+@mdeq._overwrite
+@mdeq._verbose
+@mdeq._testrun
+def ape_align_cds(**kwargs):
+    """codon aligns chrom1 human, chimp, gorilla sequences"""
+    from mdeq_analysis import ape
+
+    result = ape.codon_align(**kwargs)
+    func_name = inspect.stack()[0].function
+    if result:
+        click.secho(f"{func_name!r} is done!", fg="green")
+    else:
+        click.secho(f"{func_name!r} failed!", fg="red")
+
+
 if __name__ == "__main__":
     main()
