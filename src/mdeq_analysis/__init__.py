@@ -8,6 +8,8 @@ from warnings import simplefilter
 
 import click
 
+from mdeq._click_options import _valid_sqlitedb_input
+
 
 try:
     from wakepy import set_keepawake, unset_keepawake
@@ -291,6 +293,38 @@ def ape_align_cds(**kwargs):
     from mdeq_analysis import ape
 
     result = ape.codon_align(**kwargs)
+    func_name = inspect.stack()[0].function
+    if result:
+        click.secho(f"{func_name!r} is done!", fg="green")
+    else:
+        click.secho(f"{func_name!r} failed!", fg="red")
+
+
+@main.command()
+@click.option(
+    "-cp",
+    "--cds_path",
+    required=True,
+    callback=_valid_sqlitedb_input,
+    help="directory of unaligned CDS sequences",
+)
+@click.option(
+    "-id",
+    "--intron_indir",
+    required=True,
+    type=Path,
+    help="directory of ensembl aligned intron sequences",
+)
+@mdeq._outdir
+@mdeq._limit
+@mdeq._overwrite
+@mdeq._verbose
+@mdeq._testrun
+def ape_match_cds_intron(**kwargs):
+    """filters ape codon and intron alignments, only writes out if gene passes both filters"""
+    from mdeq_analysis import ape
+
+    result = ape.match_cds_intron(**kwargs)
     func_name = inspect.stack()[0].function
     if result:
         click.secho(f"{func_name!r} is done!", fg="green")
