@@ -151,32 +151,6 @@ _glob_indir = click.option(
 
 @main.command()
 @_glob_indir
-@mdeq._limit
-@mdeq._overwrite
-@mdeq._verbose
-def extract_pvalues(**kwargs):
-    """extracts p-values from TOE results"""
-    paths = kwargs.pop("indir")
-    verbose = kwargs.pop("verbose")
-    func_name = inspect.stack()[0].function
-    if verbose:
-        print(paths)
-
-    set_keepawake(keep_screen_awake=False)
-
-    for i, path in enumerate(
-        map(lambda x: postprocess.write_quantiles(x, **kwargs), paths)
-    ):
-        if path:
-            click.secho(f"{func_name!r} success for {paths[i].name!r}", fg="green")
-        else:
-            click.secho(f"{func_name!r} failed  for {paths[i].name!r}", fg="red")
-
-    unset_keepawake()
-
-
-@main.command()
-@_glob_indir
 @mdeq._click_options._outdir
 @mdeq._wrt_nstat
 @mdeq._limit
