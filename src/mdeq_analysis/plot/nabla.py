@@ -5,16 +5,17 @@ import plotly.express as px
 
 from cogent3 import make_table
 from cogent3.app import io
+from mdeq.sqlite_data_store import sql_loader
 from plotly.subplots import make_subplots
 
-from . import util
+from mdeq_analysis.plot import util
 
 
 def convert_to_table(path):
     """converts the delta_nabla instances to a table"""
     from mdeq import convergence  # required to register the deserialiser
 
-    loader = io.load_db()
+    loader = sql_loader()
     dstore = io.get_data_store(path)
     results = defaultdict(list)
     for m in dstore:
