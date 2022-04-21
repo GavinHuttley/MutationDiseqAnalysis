@@ -5,10 +5,11 @@ from cogent3 import load_table
 from cogent3.maths.stats.distribution import theoretical_quantiles
 from plotly.subplots import make_subplots
 
-from . import util
+from mdeq_analysis.plot import util
 
 
 def load_quantiles(path, col="chisq_pvals"):
+    path = Path(path)
     tsv_path = path.parent / f"{path.stem}.tsv"
 
     table = load_table(tsv_path)
@@ -17,7 +18,7 @@ def load_quantiles(path, col="chisq_pvals"):
             table.columns[col] = sorted(data)
     table.title = path.stem
     table.columns["theoretical"] = theoretical_quantiles(table.shape[0], dist="uniform")
-    return table[:, [c for c in table.header if c != "source"]]
+    return table[:, [c for c in table.header if c != "name"]]
 
 
 _show_legend = set()
@@ -51,7 +52,7 @@ def get_quantile_fig(paths: Path, stat: str, alpha: float = 0.4):
     grouped_traces = defaultdict(list)
     for path in paths:
         seed, bp = util.path_components(path)
-        table = load_quantiles(path)
+        table = load_quantiles(path, col=stat)
         grouped_traces[seed].append(get_trace(table, stat, bp, alpha))
 
     fig = make_subplots(
