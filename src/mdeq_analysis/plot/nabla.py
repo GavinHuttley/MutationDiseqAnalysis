@@ -27,7 +27,7 @@ def convert_to_table(path):
 
 def stat_to_trace(table, col, name):
     """returns violin plot trace"""
-    color = util.get_colour_for_length(name)
+    color = util.get_colour_for_name(name)
     return dict(
         type="violin",
         y=table.columns[col],

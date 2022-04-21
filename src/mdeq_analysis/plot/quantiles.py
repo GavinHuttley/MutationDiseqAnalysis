@@ -25,7 +25,7 @@ _show_legend = set()
 
 def get_trace(table, col, name, alpha):
     """get's scatter trace of quantiles"""
-    color = util.get_colour_for_length(name, alpha)
+    color = util.get_colour_for_name(name, alpha)
     showlegend = name not in _show_legend
     _show_legend.add(name)
     return dict(
