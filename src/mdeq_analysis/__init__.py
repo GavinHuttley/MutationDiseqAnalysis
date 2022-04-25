@@ -20,6 +20,7 @@ except NotImplementedError:
     set_keepawake, unset_keepawake = make_none, make_none
 
 
+from mdeq_analysis import fxy
 from mdeq_analysis import microbial as micro
 from mdeq_analysis import postprocess
 
@@ -299,6 +300,42 @@ def ape_match_cds_intron(**kwargs):
     from mdeq_analysis import ape
 
     result = ape.match_cds_intron(**kwargs)
+    func_name = inspect.stack()[0].function
+    if result:
+        click.secho(f"{func_name!r} is done!", fg="green")
+    else:
+        click.secho(f"{func_name!r} failed!", fg="red")
+
+
+@main.command()
+@click.option(
+    "-mmu",
+    "--mmu_path",
+    required=True,
+    type=Path,
+    help="directory of unaligned Mus musculus sequences",
+)
+@click.option(
+    "-msp",
+    "--msp_path",
+    required=True,
+    type=Path,
+    help="directory of unaligned Mus spretus sequences",
+)
+@click.option(
+    "-rno",
+    "--rno_path",
+    required=True,
+    type=Path,
+    help="directory of unaligned Rattus norvegicus sequences",
+)
+@mdeq._outpath
+@mdeq._overwrite
+@mdeq._verbose
+@mdeq._parallel
+def fxy_align(*args, **kwargs):
+    """align rodent sequences"""
+    result = fxy.make_aligned(*args, **kwargs)
     func_name = inspect.stack()[0].function
     if result:
         click.secho(f"{func_name!r} is done!", fg="green")
