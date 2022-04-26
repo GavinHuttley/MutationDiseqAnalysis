@@ -112,6 +112,9 @@ def make_aligned(mmu_path, msp_path, rno_path, outpath, parallel, overwrite, ver
     Rat
     """
     LOGGER = CachingLogger(create_dir=True)
+    LOGGER.log_args()
+    LOGGER.log_file_path = outpath.parent / "fxy-align.log"
+
     basenames = [p.name for p in mmu_path.glob("*.fasta")]
     grouper = group_orthologs(
         mmu_path=mmu_path, msp_path=msp_path, rno_path=rno_path, logger=LOGGER
