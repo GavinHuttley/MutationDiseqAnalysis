@@ -81,7 +81,7 @@ def group_orthologs(
     return make_unaligned_seqs(
         data=data,
         moltype="dna",
-        info={"source": str(base_name)},
+        info={"source": base_name},
     )
 
 
