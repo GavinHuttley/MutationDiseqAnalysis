@@ -47,7 +47,7 @@ def codon_align(
     all_species = sample.take_named_seqs("Human", "Chimp", "Gorilla")
     loader = io.load_unaligned(moltype="dna", format="fasta")
     aligner = align.progressive_align("codon")
-    writer = io.write_db(
+    writer = sql_writer(
         outpath, create=True, if_exists=io.OVERWRITE if overwrite else io.RAISE
     )
     dstore = io.get_data_store(cds_indir, suffix=".fa.gz", limit=limit)

@@ -10,6 +10,7 @@ from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
 from mdeq.model import mles_within_bounds
+from mdeq.sqlite_data_store import sql_writer
 from mdeq.stationary_pi import get_stat_pi_via_eigen
 from mdeq.utils import (
     SerialisableMixin,
@@ -62,7 +63,7 @@ def filter_alignments(indir, outpath, suffix, limit, overwrite):
     just_nucs = sample.omit_degenerates(
         moltype="dna", motif_length=1, gap_is_degen=True
     )
-    writer = io.write_db(
+    writer = sql_writer(
         outpath,
         name_callback=_make_name,
         create=True,
@@ -97,7 +98,7 @@ def fit_gn(inpath, outpath, parallel, mpi, limit, overwrite, verbose):
         opt_args=dict(max_restarts=5),
         show_progress=verbose > 2,
     )
-    writer = io.write_db(outpath, create=True, if_exists=overwrite)
+    writer = sql_writer(outpath, create=True, if_exists=overwrite)
 
     app = loader + gn + writer
     dstore = io.get_data_store(inpath, limit=limit)
@@ -192,7 +193,7 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
     overwrite = "overwrite" if overwrite else "raise"
     loader = io.load_db()
     calc_stats = compute_stats()
-    writer = io.write_db(outpath, create=True, if_exists=overwrite)
+    writer = sql_writer(outpath, create=True, if_exists=overwrite)
     within_bounds = mles_within_bounds()
     app = loader + within_bounds + calc_stats + writer
     r = app.apply_to(
@@ -281,7 +282,7 @@ def GSN_synthetic(
     if verbose > 1:
         print(lf)
 
-    writer = io.write_db(
+    writer = sql_writer(
         outpath, create=True, if_exists="overwrite" if overwrite else "raise"
     )
     # make a seeded rng
@@ -378,7 +379,7 @@ def generate_convergence(
 
     loader = io.load_db()
     conv = bootstrap_to_nabla()
-    writer = io.write_db(outpath, create=True, if_exists="overwrite")
+    writer = sql_writer(outpath, create=True, if_exists="overwrite")
     app = loader + conv + writer
     r = app.apply_to(
         dstore,
@@ -481,7 +482,7 @@ def make_synthetic_teop(
     teop = temporal_eop(
         ingroup,
     )
-    writer = io.write_db(
+    writer = sql_writer(
         outpath, create=True, if_exists="overwrite" if overwrite else "raise"
     )
 
