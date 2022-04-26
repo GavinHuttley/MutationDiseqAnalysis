@@ -35,7 +35,7 @@ __version__ = "2022.03.14"
 
 @click.group()
 def main():
-    """cli for analyses assocuated with mdeq"""
+    """cli for analyses associated with mdeq"""
 
 
 _seed_aln = click.option(
