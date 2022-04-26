@@ -9,7 +9,7 @@ from mdeq.utils import rich_display
 from rich.progress import track
 from scitrack import CachingLogger
 
-from mdeq_analysis import align_check
+from mdeq_analysis.align_checked import sequence_filter
 
 
 _suffixes = re.compile(r"(\.fa|\.gz|.json)")
@@ -97,8 +97,7 @@ def match_cds_intron(
     loader = sql_loader()
     ape_names = "Human", "Chimp", "Gorilla"
     take_seqs = sample.take_named_seqs(*ape_names)
-    align_qual = align_check.alignment_filter()
-    seq_qual = align_check.sequence_filter()
+    seq_qual = sequence_filter()
     third_pos = sample.take_codon_positions(3)
     no_degenerates = sample.omit_degenerates(moltype="dna", gap_is_degen=True)
     no_shorties = sample.min_length(300)
@@ -116,8 +115,7 @@ def match_cds_intron(
     intron_dstore = io.get_data_store(intron_indir, suffix="fa.gz", limit=limit)
     loader = io.load_aligned(format="fasta", moltype="dna")
     take_seqs = sample.take_named_seqs(*ape_names)
-    align_qual = align_check.alignment_filter()
-    seq_qual = align_check.sequence_filter()
+    seq_qual = sequence_filter()
     no_degenerates = sample.omit_degenerates(moltype="dna", gap_is_degen=True)
     no_shorties = sample.min_length(3000)
     intron_app = loader + take_seqs + seq_qual + no_degenerates + no_shorties
