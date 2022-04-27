@@ -45,13 +45,12 @@ def rodent_rename(seq_coll):
     return seq_coll.rename_seqs(_rename_rodent_seqs) if seq_coll else seq_coll
 
 
-@appify(_types, _types)
 def group_orthologs(
     base_name: str,
-    mmu_path: Path = None,
-    msp_path: Path = None,
-    rno_path: Path = None,
-    logger: CachingLogger = None,
+    mmu_path: Path,
+    msp_path: Path,
+    rno_path: Path,
+    logger: CachingLogger,
 ):
     """groups orthologous sequences from the 3 rodent species into a single SequenceCollection
 
@@ -59,11 +58,11 @@ def group_orthologs(
     ----------
     base_name : str
         ortholog filename common across all directories
-    mmu_path : Path, optional
+    mmu_path : Path
         Mus musculus directory
-    msp_path : Path, optional
+    msp_path : Path
         Mus spretus directory
-    rno_path : Path, optional
+    rno_path : Path
         Rattus norvegicus directory
     logger:
         for logging input files
@@ -75,7 +74,8 @@ def group_orthologs(
     species_dirs = mmu_path, msp_path, rno_path
     data = []
     for dname in species_dirs:
-        logger.input_file(dname / base_name)
+        if logger:
+            logger.input_file(dname / base_name)
         data.extend(MinimalFastaParser(dname / base_name))
 
     return make_unaligned_seqs(
@@ -116,9 +116,9 @@ def make_aligned(mmu_path, msp_path, rno_path, outpath, parallel, overwrite, ver
     LOGGER.log_file_path = outpath.parent / "fxy-align.log"
 
     basenames = [p.name for p in mmu_path.glob("*.fasta")]
-    grouper = group_orthologs(
-        mmu_path=mmu_path, msp_path=msp_path, rno_path=rno_path, logger=LOGGER
-    )
+    args = (mmu_path, msp_path, rno_path, LOGGER)
+    seq_collections = [group_orthologs(bn, *args) for bn in basenames]
+
     renamer = rodent_rename()
     aligner = progressive_align(
         "nucleotide", guide_tree="((msp:0.01,mmu:0.01):0.02,rno:0.03)"
@@ -126,9 +126,9 @@ def make_aligned(mmu_path, msp_path, rno_path, outpath, parallel, overwrite, ver
     writer = sql_writer(
         outpath, create=True, if_exists="overwrite" if overwrite else "raise"
     )
-    app = grouper + renamer + aligner + writer
+    app = renamer + aligner + writer
     app.apply_to(
-        basenames,
+        seq_collections,
         parallel=parallel,
         show_progress=verbose > 0,
         logger=LOGGER,
