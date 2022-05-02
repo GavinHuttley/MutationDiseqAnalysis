@@ -8,7 +8,7 @@ from warnings import simplefilter
 
 import click
 
-from mdeq._click_options import _valid_sqlitedb_input
+import mdeq._click_options as mdeq_opt
 
 
 try:
@@ -63,9 +63,9 @@ _indir = click.option(
 @main.command()
 @_indir
 @click.option("-s", "--suffix", help="suffix of files within indir to be loaded")
-@mdeq._outpath
-@mdeq._limit
-@mdeq._overwrite
+@mdeq_opt._outpath
+@mdeq_opt._limit
+@mdeq_opt._overwrite
 def filter_alignments(**kwargs):
     """filters sequence alignments"""
     result = micro.filter_alignments(**kwargs)
@@ -77,13 +77,13 @@ def filter_alignments(**kwargs):
 
 
 @main.command()
-@mdeq._inpath
-@mdeq._outpath
-@mdeq._parallel
-@mdeq._mpi
-@mdeq._limit
-@mdeq._overwrite
-@mdeq._verbose
+@mdeq_opt._inpath
+@mdeq_opt._outpath
+@mdeq_opt._parallel
+@mdeq_opt._mpi
+@mdeq_opt._limit
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
 def microbial_fit_gn(**kwargs):
     """fits GN to microbial 16S data"""
     set_keepawake(keep_screen_awake=False)
@@ -97,12 +97,12 @@ def microbial_fit_gn(**kwargs):
 
 
 @main.command()
-@mdeq._inpath
-@mdeq._outpath
-@mdeq._parallel
-@mdeq._limit
-@mdeq._overwrite
-@mdeq._verbose
+@mdeq_opt._inpath
+@mdeq_opt._outpath
+@mdeq_opt._parallel
+@mdeq_opt._limit
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
 def microbial_gn_stats(**kwargs):
     """generate stats from GN fits to microbial 16S data"""
     result = micro.gn_statistics(**kwargs)
@@ -114,16 +114,16 @@ def microbial_gn_stats(**kwargs):
 
 
 @main.command()
-@mdeq._inpath
-@mdeq._click_options._outdir
-@mdeq._click_options._just_continuous
+@mdeq_opt._inpath
+@mdeq_opt._click_options._outdir
+@mdeq_opt._click_options._just_continuous
 @_seed_aln
-@mdeq._seed
+@mdeq_opt._seed
 @_sim_length
-@mdeq._num_reps
-@mdeq._overwrite
-@mdeq._verbose
-@mdeq._testrun
+@mdeq_opt._num_reps
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
+@mdeq_opt._testrun
 def microbial_fg_gsn_synthetic(**kwargs):
     """generate synthetic alignments from GN fits to microbial 16S data"""
     result = micro.GSN_synthetic(**kwargs)
@@ -152,11 +152,11 @@ _glob_indir = click.option(
 
 @main.command()
 @_glob_indir
-@mdeq._click_options._outdir
-@mdeq._wrt_nstat
-@mdeq._limit
-@mdeq._overwrite
-@mdeq._verbose
+@mdeq_opt._click_options._outdir
+@mdeq_opt._wrt_nstat
+@mdeq_opt._limit
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
 def microbial_nabla(**kwargs):
     """generate nabla statistics from GN fits of TOE boostrap results on null data"""
     paths = kwargs.pop("indir")
@@ -179,10 +179,10 @@ def microbial_nabla(**kwargs):
 
 @main.command()
 @_glob_indir
-@mdeq._limit
-@mdeq._overwrite
-@mdeq._verbose
-@mdeq._testrun
+@mdeq_opt._limit
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
+@mdeq_opt._testrun
 def microbial_aeop_locations(**kwargs):
     """generates a synthetic locations file for alignments at inpath"""
     func_name = inspect.stack()[0].function
@@ -199,15 +199,15 @@ def microbial_aeop_locations(**kwargs):
 
 
 @main.command()
-@mdeq._inpath
-@mdeq._click_options._outdir
+@mdeq_opt._inpath
+@mdeq_opt._click_options._outdir
 @_seed_aln
-@mdeq._seed
+@mdeq_opt._seed
 @_sim_length
-@mdeq._num_reps
-@mdeq._overwrite
-@mdeq._verbose
-@mdeq._testrun
+@mdeq_opt._num_reps
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
+@mdeq_opt._testrun
 def microbial_teop_synthetic(**kwargs):
     """generate synthetic alignments from GN fits to microbial 16S data"""
     result = micro.make_synthetic_teop(**kwargs)
@@ -223,11 +223,11 @@ def microbial_teop_synthetic(**kwargs):
 @click.option(
     "-fb", "--fb_table", required=True, type=Path, help="flybase gene order table"
 )
-@mdeq._outpath
-@mdeq._limit
-@mdeq._overwrite
-@mdeq._verbose
-@mdeq._testrun
+@mdeq_opt._outpath
+@mdeq_opt._limit
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
+@mdeq_opt._testrun
 def dros_filter_alignments(**kwargs):
     """filters Drosophila group sequence alignments"""
     from mdeq_analysis import drosophila as dros
@@ -258,11 +258,11 @@ def dros_filter_alignments(**kwargs):
 @click.option(
     "-md", "--metadata_path", required=True, type=Path, help="tsv gene order table"
 )
-@mdeq._outpath
-@mdeq._limit
-@mdeq._overwrite
-@mdeq._verbose
-@mdeq._testrun
+@mdeq_opt._outpath
+@mdeq_opt._limit
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
+@mdeq_opt._testrun
 def ape_align_cds(**kwargs):
     """codon aligns chrom1 human, chimp, gorilla sequences"""
     from mdeq_analysis import ape
@@ -290,11 +290,11 @@ def ape_align_cds(**kwargs):
     type=Path,
     help="directory of ensembl aligned intron sequences",
 )
-@mdeq._outdir
-@mdeq._limit
-@mdeq._overwrite
-@mdeq._verbose
-@mdeq._testrun
+@mdeq_opt._outdir
+@mdeq_opt._limit
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
+@mdeq_opt._testrun
 def ape_match_cds_intron(**kwargs):
     """filters ape codon and intron alignments, only writes out if gene passes both filters"""
     from mdeq_analysis import ape
@@ -329,13 +329,28 @@ def ape_match_cds_intron(**kwargs):
     type=Path,
     help="directory of unaligned Rattus norvegicus sequences",
 )
-@mdeq._outpath
-@mdeq._overwrite
-@mdeq._verbose
-@mdeq._parallel
+@mdeq_opt._outpath
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
+@mdeq_opt._parallel
 def fxy_align(*args, **kwargs):
     """align rodent sequences"""
     result = fxy.make_aligned(*args, **kwargs)
+    func_name = inspect.stack()[0].function
+    if result:
+        click.secho(f"{func_name!r} is done!", fg="green")
+    else:
+        click.secho(f"{func_name!r} failed!", fg="red")
+
+
+@main.command()
+@mdeq_opt._inpath
+@mdeq_opt._outpath
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
+def fxy_filter_positions(**kwargs):
+    """filter Fxy sequence alignment positions, removing non-canonical bases"""
+    result = fxy.filter_positions(**kwargs)
     func_name = inspect.stack()[0].function
     if result:
         click.secho(f"{func_name!r} is done!", fg="green")
