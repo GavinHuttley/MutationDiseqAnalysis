@@ -1,3 +1,5 @@
+from plotly.io import full_figure_for_development
+
 from collections import defaultdict
 from pathlib import Path
 
@@ -90,4 +92,6 @@ def get_quantile_fig(paths: Path, stat: str, alpha: float = 0.4):
     )
     fig.update_xaxes(tickfont=dict(size=14), dtick=0.25)
     fig.update_yaxes(tickfont=dict(size=14), dtick=0.25)
+    # address plotly bug, suppress MathJax warning box
+    full_figure_for_development(fig, warn=False)
     return fig

@@ -7,6 +7,7 @@ from cogent3 import make_table
 from cogent3.app import io
 from mdeq.sqlite_data_store import sql_loader
 from plotly.subplots import make_subplots
+from plotly.io import full_figure_for_development
 
 from mdeq_analysis.plot import util
 
@@ -84,4 +85,6 @@ def get_fig_for_stat(paths, stat):
         if "Entropy" in annot["text"]:
             continue
         annot["font"]["size"] = 18
+    # address plotly bug, suppress MathJax warning box
+    full_figure_for_development(fig, warn=False)
     return fig
