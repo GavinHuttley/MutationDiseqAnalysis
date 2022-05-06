@@ -31,8 +31,8 @@ def get_trace(table: Table, col: str, name: str, alpha: float) -> dict:
     showlegend = name not in _show_legend
     _show_legend.add(name)
     return dict(
-        x=table.columns["theoretical"],
-        y=table.columns[col],
+        x=sorted(table.columns["theoretical"]),
+        y=sorted(table.columns[col]),
         name=name,
         type="scatter",
         mode="lines",
