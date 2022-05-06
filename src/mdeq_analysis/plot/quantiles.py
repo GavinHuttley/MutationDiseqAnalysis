@@ -3,6 +3,7 @@ from pathlib import Path
 
 from cogent3 import load_table
 from cogent3.maths.stats.distribution import theoretical_quantiles
+from cogent3.util.table import Table
 from plotly.subplots import make_subplots
 
 from mdeq_analysis.plot import util
@@ -24,7 +25,7 @@ def load_quantiles(path, col="chisq_pvals"):
 _show_legend = set()
 
 
-def get_trace(table, col, name, alpha):
+def get_trace(table: Table, col: str, name: str, alpha: float) -> dict:
     """get's scatter trace of quantiles"""
     color = util.get_colour_for_name(name, alpha)
     showlegend = name not in _show_legend
