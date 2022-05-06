@@ -10,7 +10,7 @@ from cogent3.app.composable import (
     appify,
 )
 from cogent3.parse.fasta import MinimalFastaParser
-from mdeq.sqlite_data_store import sql_writer
+from mdeq.sqlite_data_store import sql_loader, sql_writer
 from mdeq.utils import rich_display
 from scitrack import CachingLogger
 
@@ -134,6 +134,38 @@ def make_aligned(mmu_path, msp_path, rno_path, outpath, parallel, overwrite, ver
         logger=LOGGER,
         cleanup=True,
     )
+    result_dstore = io.get_data_store(outpath)
+    rich_display(result_dstore.describe)
+    if len(result_dstore.incomplete) > 0 and verbose:
+        rich_display(result_dstore.summary_incomplete)
+
+    return True
+
+
+def filter_positions(inpath, outpath, overwrite, verbose):
+    """filters alignment positions, removing non-canonical bases"""
+    from cogent3.app import io, sample
+
+    LOGGER = CachingLogger(create_dir=True)
+    LOGGER.log_args()
+
+    LOGGER.log_file_path = outpath.parent / "mdeqasis-fxy-filter_alignments.log"
+
+    dstore = io.get_data_store(inpath)
+
+    loader = sql_loader()
+
+    just_nucs = sample.omit_degenerates(
+        moltype="dna", motif_length=1, gap_is_degen=True
+    )
+    writer = sql_writer(
+        outpath,
+        create=True,
+        if_exists="overwrite" if overwrite else "raise",
+    )
+    app = loader + just_nucs + writer
+    r = app.apply_to(dstore, cleanup=True, show_progress=True, logger=LOGGER)
+    app.data_store.close()
     result_dstore = io.get_data_store(outpath)
     rich_display(result_dstore.describe)
     if len(result_dstore.incomplete) > 0 and verbose:
