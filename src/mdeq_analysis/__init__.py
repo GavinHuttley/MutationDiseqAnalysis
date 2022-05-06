@@ -187,8 +187,7 @@ def microbial_aeop_locations(**kwargs):
     func_name = inspect.stack()[0].function
     paths = kwargs.pop("indir")
     for path in paths:
-        result = micro.make_synthetic_aeop_locations(path, **kwargs)
-        if result:
+        if result := micro.make_synthetic_aeop_locations(path, **kwargs):
             click.secho(f"{func_name!r} wrote {result!r}!", fg="green")
         else:
             click.secho(f"{func_name!r} failed for {path!r}!", fg="red")
