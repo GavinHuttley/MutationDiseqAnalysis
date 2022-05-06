@@ -7,7 +7,6 @@ from pathlib import Path
 from warnings import simplefilter
 
 import click
-
 import mdeq._click_options as mdeq_opt
 
 
@@ -115,8 +114,8 @@ def microbial_gn_stats(**kwargs):
 
 @main.command()
 @mdeq_opt._inpath
-@mdeq_opt._click_options._outdir
-@mdeq_opt._click_options._just_continuous
+@mdeq_opt._outdir
+@mdeq_opt._just_continuous
 @_seed_aln
 @mdeq_opt._seed
 @_sim_length
@@ -152,7 +151,7 @@ _glob_indir = click.option(
 
 @main.command()
 @_glob_indir
-@mdeq_opt._click_options._outdir
+@mdeq_opt._outdir
 @mdeq_opt._wrt_nstat
 @mdeq_opt._limit
 @mdeq_opt._overwrite
@@ -200,7 +199,7 @@ def microbial_aeop_locations(**kwargs):
 
 @main.command()
 @mdeq_opt._inpath
-@mdeq_opt._click_options._outdir
+@mdeq_opt._outdir
 @_seed_aln
 @mdeq_opt._seed
 @_sim_length
@@ -280,7 +279,7 @@ def ape_align_cds(**kwargs):
     "-cp",
     "--cds_path",
     required=True,
-    callback=_valid_sqlitedb_input,
+    callback=mdeq_opt._valid_sqlitedb_input,
     help="directory of unaligned CDS sequences",
 )
 @click.option(
