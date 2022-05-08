@@ -109,10 +109,13 @@ def fit_gn(inpath, outpath, parallel, mpi, limit, overwrite, verbose):
         dstore, cleanup=True, logger=LOGGER, show_progress=verbose >= 2, **kwargs
     )
 
-    app.data_store.close()
     rich_display(app.data_store.describe)
     if len(app.data_store.incomplete) > 0 and verbose:
         rich_display(app.data_store.summary_incomplete)
+
+    app.data_store.close()
+
+    return True
 
     return True
 
