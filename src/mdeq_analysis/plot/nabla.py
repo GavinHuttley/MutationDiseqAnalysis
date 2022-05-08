@@ -6,8 +6,8 @@ import plotly.express as px
 from cogent3 import make_table
 from cogent3.app import io
 from mdeq.sqlite_data_store import sql_loader
-from plotly.subplots import make_subplots
 from plotly.io import full_figure_for_development
+from plotly.subplots import make_subplots
 
 from mdeq_analysis.plot import util
 
