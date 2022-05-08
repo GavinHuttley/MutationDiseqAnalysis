@@ -117,6 +117,38 @@ def fit_gn(inpath, outpath, parallel, mpi, limit, overwrite, verbose):
 
     return True
 
+
+def select_alignments(aligns_path, fit_path, outpath, limit, overwrite, verbose):
+    """selects alignments based on GN fits"""
+    LOGGER = CachingLogger(create_dir=True)
+    LOGGER.log_args()
+    LOGGER.log_file_path = outpath.parent / "mdeqasis-micro_select_alignments.log"
+
+    dstore = io.get_data_store(fit_path)
+
+    loader = sql_loader()
+    records = [loader(m) for m in dstore]
+    header = records[0].header()
+    rows = [r.to_record() for r in records]
+    table = make_table(header=header, data=rows)
+    table = table.filtered(lambda x: x <= 3, columns="cond_num")
+    source = [f"{s}.json" for s in table.columns["source"]]
+    align_dstore = io.get_data_store(aligns_path)
+    align_dstore = align_dstore.filtered(callback=lambda x: x in source)
+    writer = sql_writer(outpath, if_exists="overwrite" if overwrite else "raise")
+    for m in track(align_dstore):
+        aln = loader(m)
+        aln.info.source = m.name
+        writer(aln)
+
+    log_file_path = LOGGER.log_file_path
+    LOGGER.shutdown()
+    writer.data_store.add_log(log_file_path)
+    rich_display(writer.data_store.describe)
+    if len(writer.data_store.incomplete) > 0 and verbose:
+        rich_display(writer.data_store.summary_incomplete)
+
+    writer.data_store.close()
     return True
 
 

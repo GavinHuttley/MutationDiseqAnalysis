@@ -113,6 +113,28 @@ def microbial_gn_stats(**kwargs):
 
 
 @main.command()
+@click.option(
+    "-a", "--aligns_path", type=Path, required=True, help="path to alignment sqlitedb"
+)
+@click.option("-f", "--fit_path", type=Path, required=True, help="path to toe fits")
+@mdeq_opt._outpath
+@mdeq_opt._limit
+@mdeq_opt._overwrite
+@mdeq_opt._verbose
+def micro_select_alignments(**kwargs):
+    """produce microbial 16S db based on model fits and condition number"""
+    result = micro.select_alignments(**kwargs)
+    func_name = inspect.stack()[0].function
+    if result:
+        click.secho(f"{func_name!r} is done!", fg="green")
+    else:
+        click.secho(f"{func_name!r} failed!", fg="red")
+
+
+#
+
+
+@main.command()
 @mdeq_opt._inpath
 @mdeq_opt._outdir
 @mdeq_opt._just_continuous
