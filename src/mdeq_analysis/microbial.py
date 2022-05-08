@@ -135,8 +135,8 @@ class gn_fit_stats(SerialisableMixin):
         return tuple(self.to_dict().values())
 
     @classmethod
-    def header(self):
-        return self.__slots__
+    def header(cls):
+        return cls.__slots__
 
 
 @deserialise.register_deserialiser(misc.get_object_provenance(gn_fit_stats))
