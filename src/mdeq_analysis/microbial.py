@@ -10,7 +10,7 @@ from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
 from mdeq.model import mles_within_bounds
-from mdeq.sqlite_data_store import sql_writer
+from mdeq.sqlite_data_store import sql_loader, sql_writer
 from mdeq.stationary_pi import get_stat_pi_via_eigen
 from mdeq.utils import (
     SerialisableMixin,
@@ -194,7 +194,7 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
     dstore = io.get_data_store(inpath, limit=limit)
 
     overwrite = "overwrite" if overwrite else "raise"
-    loader = io.load_db()
+    loader = sql_loader()
     calc_stats = compute_stats()
     writer = sql_writer(outpath, create=True, if_exists=overwrite)
     within_bounds = mles_within_bounds()
