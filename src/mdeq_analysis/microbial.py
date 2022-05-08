@@ -131,7 +131,7 @@ def select_alignments(aligns_path, fit_path, outpath, limit, overwrite, verbose)
     header = records[0].header()
     rows = [r.to_record() for r in records]
     table = make_table(header=header, data=rows)
-    table = table.filtered(lambda x: x <= 3, columns="cond_num")
+    table = table.filtered(lambda x: x <= 2, columns="cond_num")
     source = [f"{s}.json" for s in table.columns["source"]]
     align_dstore = io.get_data_store(aligns_path)
     align_dstore = align_dstore.filtered(callback=lambda x: x in source)
