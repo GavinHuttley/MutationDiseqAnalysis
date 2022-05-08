@@ -206,10 +206,11 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
         show_progress=verbose > 1,
         parallel=parallel,
     )
-    app.data_store.close()
     rich_display(app.data_store.describe)
     if len(app.data_store.incomplete) > 0 and verbose:
         rich_display(app.data_store.summary_incomplete)
+
+    app.data_store.close()
 
     return True
 
@@ -389,10 +390,11 @@ def generate_convergence(
         cleanup=True,
         show_progress=verbose > 1,
     )
-    app.data_store.close()
     rich_display(app.data_store.describe)
     if len(app.data_store.incomplete) > 0 and verbose:
         rich_display(app.data_store.summary_incomplete)
+
+    app.data_store.close()
 
     return True
 
@@ -514,10 +516,11 @@ def make_synthetic_teop(
     log_file_path = LOGGER.log_file_path
     LOGGER.shutdown()
     writer.data_store.add_file(log_file_path, cleanup=True, keep_suffix=True)
-    writer.data_store.close()
 
     rich_display(writer.data_store.describe)
     if len(writer.data_store.incomplete) > 0 and verbose:
         rich_display(writer.data_store.summary_incomplete)
+
+    writer.data_store.close()
 
     return True
