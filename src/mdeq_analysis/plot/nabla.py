@@ -5,6 +5,7 @@ import plotly.express as px
 
 from cogent3 import make_table
 from cogent3.app import io
+from cogent3.maths.measure import jsd
 from mdeq.sqlite_data_store import sql_loader
 from plotly.io import full_figure_for_development
 from plotly.subplots import make_subplots
@@ -86,5 +87,27 @@ def get_fig_for_stat(paths, stat):
             continue
         annot["font"]["size"] = 18
     # address plotly bug, suppress MathJax warning box
+    full_figure_for_development(fig, warn=False)
+    return fig
+
+
+def fig_comparing_jsd_delta_nabla(align_path, nabla_path):
+    from .util import calc_jsd
+
+    aligns = io.get_data_store(align_path)
+    nablas = io.get_data_store(nabla_path)
+    loader = sql_loader()
+    x, y = [], []
+    for m in aligns:
+        aln = loader(m)
+        n_m = nablas.filtered(m.name)[0]
+        nabla = loader(n_m)
+        x.append(calc_jsd(aln))
+        y.append(nabla.delta_nabla)
+
+    fig = px.scatter(
+        x=x, y=y, labels={"x": "$\hat{JSD}$", "y": "$\hat\delta_{\\nabla}$"}
+    )
+    fig.update_layout(width=600, height=600)
     full_figure_for_development(fig, warn=False)
     return fig

@@ -2,6 +2,8 @@ import re
 
 from pathlib import Path
 
+from cogent3.maths.measure import jsd
+
 
 _seed = re.compile("(hi|lo)_(hi|lo)")
 _aln_length = re.compile(r"\d+bp")
@@ -50,3 +52,9 @@ def get_colour_for_name(name: str, alpha: float = 0.4) -> str:
         "-ve": f"rgba(0,87,231,{alpha})",
         "Observed": f"rgba(0,0,0,{alpha})",
     }[name]
+
+
+def calc_jsd(aln):
+    counts = aln.counts_per_seq()
+    freqs = counts.to_freq_array()
+    return jsd(*freqs.array)
