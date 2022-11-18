@@ -175,3 +175,45 @@ def fig_comparing_jsd_delta_nabla(align_path, nabla_path, width, height):
     )
     full_figure_for_development(fig, warn=False)
     return fig
+
+
+def compare_nabla(ape=True):
+    if ape:
+        path_template = (
+            "../results/ape/convergence/convergence-filtered-ape_aligned_{}.sqlitedb"
+        )
+        cats = ["cds", "intron"]
+    else:
+        path_template = "../results/drosophila/convergence/convergence-toe-dmel_dsim_dyak-{}.sqlitedb"
+        cats = ["Dmel", "Dsim"]
+
+    loader = sql_loader()
+    tables = []
+    for cat in cats:
+        rows = []
+        dstore = io.get_data_store(path_template.format(cat))
+        for m in dstore:
+            r = loader(m)
+            name = Path(r.source).name.split(".")[0]
+            rows.append((name, r.delta_nabla))
+        tables.append(make_table(["name", cat], data=rows, index_name="name"))
+
+    table = tables[0].inner_join(tables[1])
+    table = table.with_new_header(f"right_{cats[1]}", cats[1])
+    table.columns["diff"] = table.columns[cats[0]] - table.columns[cats[1]]
+    num_gt = sum(table.columns["diff"] > 0)
+    print(f"{num_gt} / {table.shape[0]}, {100*num_gt/table.shape[0]:1f}")
+    return table
+
+
+def histogram_nabla_diff(ape=True):
+    table = compare_nabla(ape=ape)
+    stat = r"\hat\delta_{\nabla}"
+    elements = [c for c in table.columns if c not in "namediff"]
+    for index in (0, -1):
+        elements.insert(index, stat)
+
+    axis_title = "${}({})-{}({})$".format(*elements)
+    fig = px.histogram(x=table.columns["diff"], histnorm="probability", nbins=30)
+    fig.update_xaxes(title=axis_title)
+    return fig
