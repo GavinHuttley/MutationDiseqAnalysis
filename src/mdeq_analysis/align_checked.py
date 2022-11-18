@@ -36,7 +36,7 @@ def sequence_filter(seqs: c3_types.UnalignedSeqsType, threshold:float=50):
 
     Parameters
     ----------
-    align : Alignment
+    seqs : Alignment
          sequence alignment
     threshold : int, optional
         coefficient of variation threshold, any sequence
@@ -49,21 +49,26 @@ def sequence_filter(seqs: c3_types.UnalignedSeqsType, threshold:float=50):
     coefficient of variation (cev) for each. The mean and standard deviation
     of these entropies are used to compute the cev.
     """
-    if not align:
-        return align
+    if not seqs:
+        return seqs
 
+    # compute entropies for each value of k per seq
     ks = [3, 6, 9, 12]
-    entropies = [align.entropy_per_seq(k) for k in ks]
-    std = np.std(entropies)
-    mean = np.mean(entropies)
-    cev = std / mean
+    cevs = []
+    for seq in seqs.seqs:
+        entropies = [seq.counts(motif_length=k).entropy for k in ks]
+        std = np.std(entropies)
+        mean = np.mean(entropies)
+        cevs.append(std / mean)
+
+    cev = np.mean(cevs)
     if std != 0 and cev >= threshold:
         return NotCompleted(
             "FAIL",
             "sequence_filter",
             f"threshold < cev {cev} ",
-            source=align.info.source,
+            source=seqs.info.source,
         )
 
-    align.info["sequence_cev"] = cev
-    return align
+    seqs.info["sequence_cev"] = cev
+    return seqs
