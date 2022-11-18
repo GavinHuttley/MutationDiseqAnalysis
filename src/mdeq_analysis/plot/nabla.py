@@ -27,9 +27,9 @@ def convert_to_table(path):
     return make_table(data=results, title=path.stem)
 
 
-def stat_to_trace(table, col, name):
+def stat_to_trace(table, col, name, alpha=0.4):
     """returns violin plot trace"""
-    color = util.get_colour_for_name(name)
+    color = util.get_colour_for_name(name, alpha=alpha)
     return dict(
         type="violin",
         y=table.columns[col],
@@ -46,7 +46,7 @@ def get_fig_for_stat(paths, stat):
     for path in paths:
         table = convert_to_table(path)
         seed, bp = util.path_components(path)
-        grouped_traces[seed].append(stat_to_trace(table, stat, bp))
+        grouped_traces[seed].append(stat_to_trace(table, stat, bp, alpha=0.8))
 
     y_title = r"$\hat\nabla$" if stat == "nabla" else r"$\hat\delta_{\nabla}$"
     title = (
@@ -91,7 +91,57 @@ def get_fig_for_stat(paths, stat):
     return fig
 
 
-def fig_comparing_jsd_delta_nabla(align_path, nabla_path):
+def fig_nabla_vs_delta_nabla(paths, width, height):
+    """groups results by statistic"""
+    grouped_traces = defaultdict(list)
+    stats = ("nabla", "delta_nabla")
+    for size in ("300bp", "3000bp", "30000bp"):
+        for path in paths:
+            if size in path.name:
+                break
+        table = convert_to_table(path)
+        _, bp = util.path_components(path)
+        for stat in stats:
+            grouped_traces[stat].append(stat_to_trace(table, stat, bp, alpha=0.8))
+
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        shared_yaxes=False,
+        vertical_spacing=0.05,
+    )
+    fig.add_traces(grouped_traces[stats[0]], cols=1, rows=1)
+    fig.add_traces(grouped_traces[stats[1]], cols=1, rows=2)
+    fig.update_xaxes(
+        tickfont=dict(size=14),
+        dtick=0.25,
+        title_text=r"$\text{Alignment Length}$",
+        title_font_size=18,
+        title_standoff=5,
+        row=2,
+        col=1,
+    )
+    fig.update_yaxes(
+        tickfont=dict(size=14),
+        dtick=0.25,
+        title_font_size=18,
+        title_standoff=5,
+    )
+    fig.update_yaxes(title_text=r"$\hat{\nabla}$", col=1, row=1, title_font_size=18)
+    fig.update_yaxes(
+        title_text=r"$\hat\delta_{\nabla}$",
+        col=1,
+        row=2,
+    )
+    fig.update_layout(width=width, height=height, margin=dict(l=25, r=20, t=25, b=45))
+
+    # fig.layout.annotations[-1].yshift = -20
+    full_figure_for_development(fig, warn=False)
+    return fig
+
+
+def fig_comparing_jsd_delta_nabla(align_path, nabla_path, width, height):
     from .util import calc_jsd
 
     aligns = io.get_data_store(align_path)
@@ -105,9 +155,23 @@ def fig_comparing_jsd_delta_nabla(align_path, nabla_path):
         x.append(calc_jsd(aln))
         y.append(nabla.delta_nabla)
 
-    fig = px.scatter(
-        x=x, y=y, labels={"x": "$\hat{JSD}$", "y": "$\hat\delta_{\\nabla}$"}
+    fig = px.scatter(x=x, y=y)
+    fig.update_layout(
+        width=width,
+        height=height,
+        margin=dict(l=20, r=20, t=25, b=25),
     )
-    fig.update_layout(width=600, height=600)
+    fig.update_xaxes(
+        title_text=r"$\hat{JSD}$",
+        title_font_size=18,
+        tickfont=dict(size=14),
+        title_standoff=5,
+    )
+    fig.update_yaxes(
+        title_text=r"$\hat\delta_{\nabla}$",
+        title_font_size=18,
+        tickfont=dict(size=14),
+        title_standoff=5,
+    )
     full_figure_for_development(fig, warn=False)
     return fig
