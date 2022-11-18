@@ -45,8 +45,8 @@ def annotated_subplot(fig, seed, col, row, x, y):
 def get_colour_for_name(name: str, alpha: float = 0.4) -> str:
     """returns color for length"""
     return {
-        "300bp": f"rgba(0,174,219,{alpha})",
-        "3000bp": f"rgba(255,196,37,{alpha})",
+        "300bp": f"rgba(0, 128, 255, {alpha})",
+        "3000bp": f"rgba(253, 214, 3,{alpha})",
         "30000bp": f"rgba(209,17,65,{alpha})",
         "+ve": f"rgba(214,45,32,{alpha})",
         "-ve": f"rgba(0,87,231,{alpha})",
