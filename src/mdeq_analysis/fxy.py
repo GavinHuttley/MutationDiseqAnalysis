@@ -3,16 +3,12 @@ from pathlib import Path
 from cogent3 import make_unaligned_seqs
 from cogent3.app import io
 from cogent3.app.align import progressive_align
-from cogent3.app.composable import (
-    ALIGNED_TYPE,
-    SEQUENCE_TYPE,
-    SERIALISABLE_TYPE,
-    appify,
-)
 from cogent3.parse.fasta import MinimalFastaParser
 from mdeq.sqlite_data_store import sql_loader, sql_writer
 from mdeq.utils import rich_display
 from scitrack import CachingLogger
+from cogent3.app.composable import define_app
+from cogent3.app import typing as c3_types
 
 
 # we combine the unaligned intron sequences from 3 separate directories
@@ -24,7 +20,6 @@ from scitrack import CachingLogger
 # align the sequences
 # attach / transfer annotations
 
-_types = (SERIALISABLE_TYPE, SEQUENCE_TYPE, ALIGNED_TYPE)
 
 
 def _rename_rodent_seqs(orig):
@@ -39,8 +34,8 @@ def _rename_rodent_seqs(orig):
         raise NotImplementedError(f"unexpected name {orig}")
 
 
-@appify(_types, _types)
-def rodent_rename(seq_coll):
+@define_app
+def rodent_rename(seq_coll: c3_types.UnalignedSeqsType) -> c3_types.UnalignedSeqsType:
     """renames Mus musculus to mmu, Mus spretus to msp and rattus norvegicus to rno"""
     return seq_coll.rename_seqs(_rename_rodent_seqs) if seq_coll else seq_coll
 

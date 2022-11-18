@@ -1,23 +1,17 @@
 import numpy as np
 
-from cogent3.app.composable import (
-    ALIGNED_TYPE,
-    SEQUENCE_TYPE,
-    SERIALISABLE_TYPE,
-    NotCompleted,
-    appify,
-)
+from cogent3.app.composable import define_app, NotCompleted
+from cogent3.app import typing as c3_types
 
 
 __author__ = ["Gavin Huttley", "Chris Bradley"]
 __credits__ = ["Chris Bradley", "Gavin Huttley", "Kath Caley"]
 __version__ = "2022.03.14"
 
-_types = ALIGNED_TYPE, SERIALISABLE_TYPE
 
 
-@appify(_types, _types)
-def alignment_filter(align, threshold=1.5):
+@define_app
+def alignment_filter(align: c3_types.AlignedSeqsType, threshold: float=1.5) -> c3_types.AlignedSeqsType:
     """filter out poorly aligned sequences"""
     entropy = align.entropy_per_pos()
     entropy = np.where(np.isnan(entropy), 0, entropy)
@@ -36,8 +30,8 @@ def alignment_filter(align, threshold=1.5):
     return align
 
 
-@appify(_types, _types)
-def sequence_filter(align, threshold=50):
+@define_app
+def sequence_filter(seqs: c3_types.UnalignedSeqsType, threshold:float=50):
     """filters an alignment with a sequence with lots of repeats
 
     Parameters

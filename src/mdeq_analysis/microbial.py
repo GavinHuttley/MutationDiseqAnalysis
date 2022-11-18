@@ -6,7 +6,8 @@ from dataclasses import asdict, dataclass
 
 from cogent3 import make_table
 from cogent3.app import evo, io
-from cogent3.app.composable import SERIALISABLE_TYPE, appify, get_data_source
+from cogent3.app.composable import define_app, get_data_source
+from cogent3.app import typing as c3_types
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
 from mdeq.model import mles_within_bounds
@@ -176,8 +177,8 @@ def deserialise_gn_fit_stats(data):
     return gn_fit_stats.from_dict(data)
 
 
-@appify(input_types=SERIALISABLE_TYPE, output_types=SERIALISABLE_TYPE)
-def compute_stats(result):
+@define_app
+def compute_stats(result: c3_types.SerialisableType) -> c3_types.SerialisableType:
     """
     Parameters
     ----------
