@@ -155,18 +155,18 @@ def microbial_fg_gsn_synthetic(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
-def _all_tinydbs(*args):
+def _all_dbs(*args):
     indir = args[-1]
     if "*" not in indir:
-        return list(Path(indir).glob("*.tinydb"))
+        return list(Path(indir).glob("*.sqlitedb"))
 
-    return [Path(p) for p in glob.glob(indir) if p.endswith("tinydb")]
+    return [Path(p) for p in glob.glob(indir) if p.endswith("sqlitedb")]
 
 
 _glob_indir = click.option(
     "-d",
     "--indir",
-    callback=_all_tinydbs,
+    callback=_all_dbs,
     help="more general path allowing glob patterns",
 )
 
