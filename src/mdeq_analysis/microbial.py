@@ -4,20 +4,21 @@ import pathlib
 
 from dataclasses import asdict, dataclass
 
-from cogent3 import make_table
-from cogent3.app import evo, io
-from cogent3.app.composable import define_app, get_data_source
+from cogent3 import get_app, make_table, open_data_store
 from cogent3.app import typing as c3_types
+from cogent3.app.composable import define_app, get_data_source
 from cogent3.util import deserialise, misc
 from mdeq.jsd import get_entropy, get_jsd
 from mdeq.model import mles_within_bounds
-from mdeq.sqlite_data_store import sql_loader, sql_writer
 from mdeq.stationary_pi import get_stat_pi_via_eigen
 from mdeq.utils import (
     SerialisableMixin,
     configure_parallel,
     foreground_from_jsd,
+    load_from_sqldb,
     rich_display,
+    summary_not_completed,
+    write_to_sqldb,
 )
 from numpy import iinfo, int64, random
 from numpy.linalg import cond, eig
