@@ -48,8 +48,6 @@ def _make_name(x):
 
 def filter_alignments(indir, outpath, suffix, limit, overwrite):
     """filters sequence alignments"""
-    from cogent3.app import io, sample
-
     LOGGER = CachingLogger(create_dir=True)
     LOGGER.log_args()
 
@@ -58,22 +56,33 @@ def filter_alignments(indir, outpath, suffix, limit, overwrite):
 
     LOGGER.log_file_path = outpath.parent / "mdeqasis-filter_alignments.log"
 
-    dstore = io.get_data_store(indir, suffix=suffix, limit=limit)
+    dstore = open_data_store(indir, suffix=suffix, limit=limit)
 
-    loader = io.load_aligned(moltype="dna", format="nexus")
+    loader = get_app("load_aligned", moltype="dna", format="nexus")
 
-    just_nucs = sample.omit_degenerates(
-        moltype="dna", motif_length=1, gap_is_degen=True
+    just_nucs = get_app(
+        "omit_degenerates", moltype="dna", motif_length=1, gap_is_degen=True
     )
-    writer = sql_writer(
-        outpath,
-        name_callback=_make_name,
-        create=True,
-        if_exists="overwrite" if overwrite else "raise",
+
+    if outpath.exists() and not overwrite:
+        raise IOError(f"{str(outpath)} exists")
+
+    out_dstore = open_data_store(outpath, mode="w")
+
+    writer = write_to_sqldb(
+        out_dstore,
+        id_from_source=_make_name,
     )
     app = loader + just_nucs + writer
-    r = app.apply_to(dstore, cleanup=True, show_progress=True, logger=LOGGER)
-    app.data_store.close()
+    out_dstore = app.apply_to(dstore.completed, cleanup=True, show_progress=True, logger=LOGGER)
+    out_dstore.unlock()
+
+    rich_display(app.data_store.describe)
+    if len(app.data_store.not_completed) > 0:
+        rich_display(summary_not_completed(out_dstore))
+
+    out_dstore.close()
+
     return True
 
 
