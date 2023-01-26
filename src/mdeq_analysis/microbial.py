@@ -146,31 +146,40 @@ def select_alignments(aligns_path, fit_path, outpath, limit, overwrite, verbose)
     LOGGER.log_args()
     LOGGER.log_file_path = outpath.parent / "mdeqasis-micro_select_alignments.log"
 
-    dstore = io.get_data_store(fit_path)
-
-    loader = sql_loader()
-    records = [loader(m) for m in dstore]
+    dstore = open_data_store(fit_path)
+    loader = load_from_sqldb()
+    records = [loader(m) for m in dstore.completed]
     header = records[0].header()
     rows = [r.to_record() for r in records]
     table = make_table(header=header, data=rows)
     table = table.filtered(lambda x: x <= 2, columns="cond_num")
     source = [f"{s}.json" for s in table.columns["source"]]
-    align_dstore = io.get_data_store(aligns_path)
-    align_dstore = align_dstore.filtered(callback=lambda x: x in source)
-    writer = sql_writer(outpath, if_exists="overwrite" if overwrite else "raise")
-    for m in track(align_dstore):
+    align_dstore = open_data_store(aligns_path)
+    sampled = [m for m in align_dstore.completed if m.unique_id in source]
+
+    if outpath.exists() and not overwrite:
+        raise IOError(f"{str(outpath)} exists")
+
+    out_dstore = open_data_store(outpath, mode="w")
+
+    writer = write_to_sqldb(out_dstore)
+    for m in track(sampled):
         aln = loader(m)
-        aln.info.source = m.name
+        aln.info.source = m.unique_id
         writer(aln)
 
-    log_file_path = LOGGER.log_file_path
+    log_file_path = pathlib.Path(LOGGER.log_file_path)
     LOGGER.shutdown()
-    writer.data_store.add_log(log_file_path)
-    rich_display(writer.data_store.describe)
-    if len(writer.data_store.incomplete) > 0 and verbose:
-        rich_display(writer.data_store.summary_incomplete)
 
-    writer.data_store.close()
+    out_dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
+    log_file_path.unlink(missing_ok=True)
+    out_dstore.unlock()
+
+    rich_display(out_dstore.describe)
+    if len(out_dstore.not_completed) > 0 and verbose:
+        rich_display(summary_not_completed(out_dstore))
+
+    out_dstore.close()
     return True
 
 
