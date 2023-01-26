@@ -98,10 +98,9 @@ def fit_gn(inpath, outpath, parallel, mpi, limit, overwrite, verbose):
 
     LOGGER.log_file_path = outpath.parent / "mdeqasis-fit_gn.log"
 
-    dstore = io.get_data_store(inpath, limit=limit)
-    overwrite = "overwrite" if overwrite else "raise"
-    loader = io.load_db()
-    gn = evo.model(
+    loader = load_from_sqldb()
+    gn = get_app(
+        "model",
         "GN",
         unique_trees=True,
         time_het="max",
@@ -109,20 +108,32 @@ def fit_gn(inpath, outpath, parallel, mpi, limit, overwrite, verbose):
         opt_args=dict(max_restarts=5),
         show_progress=verbose > 2,
     )
-    writer = sql_writer(outpath, create=True, if_exists=overwrite)
+
+    if outpath.exists() and not overwrite:
+        raise IOError(f"{str(outpath)} exists")
+
+    out_dstore = open_data_store(outpath, mode="w")
+
+    writer = write_to_sqldb(out_dstore)
 
     app = loader + gn + writer
-    dstore = io.get_data_store(inpath, limit=limit)
+    dstore = open_data_store(inpath, limit=limit)
 
     kwargs = configure_parallel(parallel=parallel, mpi=mpi)
 
     r = app.apply_to(
-        dstore, cleanup=True, logger=LOGGER, show_progress=verbose >= 2, **kwargs
+        dstore.completed,
+        cleanup=True,
+        logger=LOGGER,
+        show_progress=verbose >= 2,
+        **kwargs,
     )
 
+    out_dstore.unlock()
+
     rich_display(app.data_store.describe)
-    if len(app.data_store.incomplete) > 0 and verbose:
-        rich_display(app.data_store.summary_incomplete)
+    if len(app.data_store.not_completed) > 0 and verbose:
+        rich_display(summary_not_completed(out_dstore))
 
     app.data_store.close()
 
