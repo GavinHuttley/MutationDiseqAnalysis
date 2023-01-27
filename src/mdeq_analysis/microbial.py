@@ -33,11 +33,11 @@ __version__ = "2022.03.14"
 
 def load_seed_alignment(inpath, seed_aln):
     """loads the alignment with matching name to seed_aln"""
-    dstore = io.get_data_store(inpath)
-    r = dstore.filtered(pattern=f"*{seed_aln}*")
+    dstore = open_data_store(inpath)
+    r = [m for m in dstore if seed_aln in m.unique_id]
     if len(r) == 0:
         raise ValueError(f"{seed_aln=!r} missing from {inpath!r}")
-    loader = io.load_db()
+    loader = load_from_sqldb()
     return loader(r[0])
 
 
@@ -320,8 +320,6 @@ def GSN_synthetic(
     num_reps : int
         number of alignments to simulate
     """
-    from cogent3.app import evo, io
-
     LOGGER = CachingLogger(create_dir=True)
 
     inpath = pathlib.Path(inpath)
@@ -329,12 +327,14 @@ def GSN_synthetic(
     func_name = inspect.stack()[0].function
     if just_continuous:
         outpath = (
-            outdir / f"{func_name}-{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
+            outdir / f"{func_name}-{seed_aln}-{sim_length}bp-{num_reps}reps.sqlitedb"
         )
     else:
         outpath = (
-            outdir / f"fg_{func_name}-{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
+            outdir / f"fg_{func_name}-{seed_aln}-{sim_length}bp-{num_reps}reps.sqlitedb"
         )
+
+    outpath.parent.mkdir(exist_ok=True)
 
     LOGGER.log_args()
 
@@ -349,9 +349,13 @@ def GSN_synthetic(
     if verbose > 1:
         print(lf)
 
-    writer = sql_writer(
-        outpath, create=True, if_exists="overwrite" if overwrite else "raise"
-    )
+    if outpath.exists() and not overwrite:
+        raise IOError(f"{str(outpath)} exists")
+
+    out_dstore = open_data_store(outpath, mode="w")
+
+    writer = write_to_sqldb(out_dstore)
+
     # make a seeded rng
     rng = random.default_rng(seed=seed)
     # we will use numpy to select a new seed each iteration, so we identify
@@ -374,10 +378,19 @@ def GSN_synthetic(
 
         writer(sim_aln)
 
-    log_file_path = LOGGER.log_file_path
+    log_file_path = pathlib.Path(LOGGER.log_file_path)
     LOGGER.shutdown()
-    writer.data_store.add_file(log_file_path, cleanup=True, keep_suffix=True)
-    writer.data_store.close()
+    out_dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
+    log_file_path.unlink()
+
+    out_dstore.unlock()
+
+    rich_display(out_dstore.describe)
+    if len(out_dstore.not_completed) > 0 and verbose:
+        rich_display(summary_not_completed(out_dstore))
+
+    out_dstore.close()
+
     return True
 
 
@@ -398,9 +411,10 @@ def _get_null_generator(obs_aln, has_discrete, testrun, verbose):
     else:
         opt_args = {"max_restarts": 5, "tolerance": 1e-8}
 
-    gn = evo.model(
+    gn = get_app(
+        "model",
         model_name,
-        sm_args=dict(optimise_motif_probs=True),
+        optimise_motif_probs=True,
         lf_args=lf_args,
         opt_args=opt_args,
         show_progress=verbose > 2,
