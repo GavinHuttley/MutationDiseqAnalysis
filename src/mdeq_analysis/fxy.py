@@ -1,14 +1,16 @@
 from pathlib import Path
 
-from cogent3 import make_unaligned_seqs
-from cogent3.app import io
-from cogent3.app.align import progressive_align
-from cogent3.parse.fasta import MinimalFastaParser
-from mdeq.sqlite_data_store import sql_loader, sql_writer
-from mdeq.utils import rich_display
-from scitrack import CachingLogger
-from cogent3.app.composable import define_app
+from cogent3 import get_app, make_unaligned_seqs, open_data_store
 from cogent3.app import typing as c3_types
+from cogent3.app.composable import define_app
+from cogent3.parse.fasta import MinimalFastaParser
+from mdeq.utils import (
+    load_from_sqldb,
+    rich_display,
+    summary_not_completed,
+    write_to_sqldb,
+)
+from scitrack import CachingLogger
 
 
 # we combine the unaligned intron sequences from 3 separate directories
@@ -19,7 +21,6 @@ from cogent3.app import typing as c3_types
 # rename sequences
 # align the sequences
 # attach / transfer annotations
-
 
 
 def _rename_rodent_seqs(orig):
@@ -115,55 +116,61 @@ def make_aligned(mmu_path, msp_path, rno_path, outpath, parallel, overwrite, ver
     seq_collections = [group_orthologs(bn, *args) for bn in basenames]
 
     renamer = rodent_rename()
-    aligner = progressive_align(
-        "nucleotide", guide_tree="((msp:0.01,mmu:0.01):0.02,rno:0.03)"
+    aligner = get_app(
+        "progressive_align",
+        "nucleotide",
+        guide_tree="((msp:0.01,mmu:0.01):0.02,rno:0.03)",
     )
-    writer = sql_writer(
-        outpath, create=True, if_exists="overwrite" if overwrite else "raise"
-    )
+    out_dstore = open_data_store(outpath, mode="w")
+    writer = write_to_sqldb(out_dstore)
     app = renamer + aligner + writer
-    app.apply_to(
+    out_dstore = app.apply_to(
         seq_collections,
         parallel=parallel,
         show_progress=verbose > 0,
         logger=LOGGER,
         cleanup=True,
     )
-    result_dstore = io.get_data_store(outpath)
-    rich_display(result_dstore.describe)
-    if len(result_dstore.incomplete) > 0 and verbose:
-        rich_display(result_dstore.summary_incomplete)
 
-    return True
+    out_dstore.unlock()
+    success = len(out_dstore.completed) > 1
+    rich_display(out_dstore.describe)
+    if len(out_dstore.not_completed) > 0 and verbose:
+        rich_display(summary_not_completed(out_dstore))
+
+    return success
 
 
 def filter_positions(inpath, outpath, overwrite, verbose):
     """filters alignment positions, removing non-canonical bases"""
-    from cogent3.app import io, sample
-
     LOGGER = CachingLogger(create_dir=True)
     LOGGER.log_args()
 
     LOGGER.log_file_path = outpath.parent / "mdeqasis-fxy-filter_alignments.log"
 
-    dstore = io.get_data_store(inpath)
+    dstore = open_data_store(inpath)
 
-    loader = sql_loader()
+    loader = load_from_sqldb()
+    just_nucs = get_app(
+        "omit_degenerates", moltype="dna", motif_length=1, gap_is_degen=True
+    )
 
-    just_nucs = sample.omit_degenerates(
-        moltype="dna", motif_length=1, gap_is_degen=True
-    )
-    writer = sql_writer(
-        outpath,
-        create=True,
-        if_exists="overwrite" if overwrite else "raise",
-    )
+    if outpath.exists() and not overwrite:
+        return outpath
+
+    outpath.parent.mkdir(parents=True, exist_ok=True)
+    out_dstore = open_data_store(outpath, mode="w")
+    writer = write_to_sqldb(out_dstore)
+
     app = loader + just_nucs + writer
-    r = app.apply_to(dstore, cleanup=True, show_progress=True, logger=LOGGER)
-    app.data_store.close()
-    result_dstore = io.get_data_store(outpath)
-    rich_display(result_dstore.describe)
-    if len(result_dstore.incomplete) > 0 and verbose:
-        rich_display(result_dstore.summary_incomplete)
+    out_dstore = app.apply_to(
+        dstore.completed, cleanup=True, show_progress=True, logger=LOGGER
+    )
+    out_dstore.unlock()
+    success = len(out_dstore.completed) > 0
+    rich_display(out_dstore.describe)
+    if len(out_dstore.not_completed) > 0 and verbose:
+        rich_display(summary_not_completed(out_dstore))
 
-    return True
+    out_dstore.close()
+    return success
