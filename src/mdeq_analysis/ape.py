@@ -65,7 +65,7 @@ def codon_align(
     out_dstore = app.apply_to(
         selected, logger=LOGGER, cleanup=True, show_progress=verbose
     )
-
+    out_dstore.unlock()
     rich_display(out_dstore.describe)
     if len(out_dstore.not_completed) > 0 and verbose:
         rich_display(summary_not_completed(out_dstore))
@@ -159,6 +159,9 @@ def match_cds_intron(
     log = log_file_path.read_text()
     intron_writer.data_store.write_log(data=log, unique_id=log_file_path.name)
     cds_writer.data_store.write_log(data=log, unique_id=log_file_path.name)
+
+    cds_dstore.unlock()
+    intron_dstore.unlock()
 
     if verbose:
         rich_display(cds_writer.data_store.describe)
