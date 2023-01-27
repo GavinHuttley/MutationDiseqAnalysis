@@ -74,7 +74,9 @@ def filter_alignments(indir, outpath, suffix, limit, overwrite):
         id_from_source=_make_name,
     )
     app = loader + just_nucs + writer
-    out_dstore = app.apply_to(dstore.completed, cleanup=True, show_progress=True, logger=LOGGER)
+    out_dstore = app.apply_to(
+        dstore.completed, cleanup=True, show_progress=True, logger=LOGGER
+    )
     out_dstore.unlock()
 
     rich_display(app.data_store.describe)
@@ -259,7 +261,7 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
     if outpath.exists() and not overwrite:
         raise IOError(f"{str(outpath)} exists")
 
-    outpath.parent.mkdir(exist_ok=True)
+    outpath.parent.mkdir(exist_ok=True, parents=True)
     out_dstore = open_data_store(outpath, mode="w")
 
     writer = write_to_sqldb(out_dstore)
@@ -341,7 +343,7 @@ def GSN_synthetic(
             outdir / f"fg_{func_name}-{seed_aln}-{sim_length}bp-{num_reps}reps.sqlitedb"
         )
 
-    outpath.parent.mkdir(exist_ok=True)
+    outpath.parent.mkdir(exist_ok=True, parents=True)
 
     LOGGER.log_args()
 
@@ -446,41 +448,48 @@ def generate_convergence(
     from mdeq.convergence import bootstrap_to_nabla
 
     name_suffix = (
-        "nstat_scale-convergence.tinydb"
+        "nstat_scale-convergence.sqlitedb"
         if wrt_nstat
-        else "standard_scale-convergence.tinydb"
+        else "standard_scale-convergence.sqlitedb"
     )
     outpath = outdir / f"{path.stem}-{name_suffix}"
     if outpath.exists() and not overwrite:
         return outpath
 
-    dstore = io.get_data_store(path, limit=limit)
+    dstore = open_data_store(path, limit=limit)
     limit = limit or 1000
     if len(dstore) != limit:
-        print(f"{path.stem} has {limit - len(dstore)} incompleted results!")
-        print(dstore.summary_incomplete)
-        if len(dstore) == 0:
+        print(f"{path.stem} has {limit - len(dstore)} incomplete results!")
+        summary_not_completed(dstore)
+        if len(dstore.completed) == 0:
             return False
 
     if verbose:
         print("getting nabla values")
 
-    loader = io.load_db()
+    loader = load_from_sqldb()
     conv = bootstrap_to_nabla()
-    writer = sql_writer(outpath, create=True, if_exists="overwrite")
+
+    outpath.parent.mkdir(exist_ok=True, parents=True)
+    out_dstore = open_data_store(outpath, mode="w")
+    writer = write_to_sqldb(out_dstore)
+
     app = loader + conv + writer
-    r = app.apply_to(
-        dstore,
+    out_dstore = app.apply_to(
+        dstore.completed,
         cleanup=True,
         show_progress=verbose > 1,
     )
-    rich_display(app.data_store.describe)
-    if len(app.data_store.incomplete) > 0 and verbose:
-        rich_display(app.data_store.summary_incomplete)
+
+    out_dstore.unlock()
+    success = len(out_dstore.completed) > 0
+    rich_display(out_dstore.describe)
+    if len(out_dstore.not_completed) > 0 and verbose:
+        rich_display(summary_not_completed(out_dstore))
 
     app.data_store.close()
 
-    return True
+    return success
 
 
 def make_synthetic_aeop_locations(
@@ -497,14 +506,14 @@ def make_synthetic_aeop_locations(
     -----
     To ensure independence of analysed results, the locations file
     assigns 2 alignments to a unique 'chromosome'!
-    Replaces the tinydb suffix for tsv.
+    Replaces the sqlitedb suffix for tsv.
     """
     outpath = inpath.parent / pathlib.Path(f"locations-{inpath.stem}.tsv")
     if outpath.exists() and not overwrite:
         return outpath
 
-    dstore = io.get_data_store(inpath, limit=limit)
-    loader = io.load_db()
+    dstore = open_data_store(inpath, limit=limit)
+    loader = load_from_sqldb()
     names = [pathlib.Path(loader(m).info.source).stem for m in dstore]
     if verbose:
         print(names[:6])
@@ -555,7 +564,7 @@ def make_synthetic_teop(
     LOGGER.log_args()
 
     outpath = outdir / pathlib.Path(
-        f"teop-{seed_aln}-{sim_length}bp-{num_reps}reps.tinydb"
+        f"teop-{seed_aln}-{sim_length}bp-{num_reps}reps.sqlitedb"
     )
     if outpath.exists() and not overwrite:
         return outpath
@@ -571,9 +580,13 @@ def make_synthetic_teop(
     teop = temporal_eop(
         ingroup,
     )
-    writer = sql_writer(
-        outpath, create=True, if_exists="overwrite" if overwrite else "raise"
-    )
+    if outpath.exists() and not overwrite:
+        raise IOError(f"{str(outpath)} exists")
+
+    outpath.parent.mkdir(parents=True, exist_ok=True)
+    out_dstore = open_data_store(outpath, mode="w")
+
+    writer = write_to_sqldb(out_dstore)
 
     # make a seeded rng
     rng = random.default_rng(seed=seed)
@@ -597,14 +610,17 @@ def make_synthetic_teop(
         sim_aln.info.source = f"{seed_name}-sim-{i}.json"
         writer(sim_aln)
 
-    log_file_path = LOGGER.log_file_path
+    log_file_path = pathlib.Path(LOGGER.log_file_path)
     LOGGER.shutdown()
-    writer.data_store.add_file(log_file_path, cleanup=True, keep_suffix=True)
+    out_dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
+    log_file_path.unlink()
 
-    rich_display(writer.data_store.describe)
-    if len(writer.data_store.incomplete) > 0 and verbose:
-        rich_display(writer.data_store.summary_incomplete)
+    out_dstore.unlock()
 
-    writer.data_store.close()
+    rich_display(out_dstore.describe)
+    if len(out_dstore.not_completed) > 0 and verbose:
+        rich_display(summary_not_completed(out_dstore))
+
+    out_dstore.close()
 
     return True
