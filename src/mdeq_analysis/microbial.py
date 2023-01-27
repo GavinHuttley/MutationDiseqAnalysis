@@ -224,7 +224,6 @@ def compute_stats(result: c3_types.SerialisableType) -> c3_types.SerialisableTyp
         return result
 
     aln = result.alignment
-    edge = foreground_from_jsd(aln)
     edge, _, jsd = get_jsd(aln)
 
     entropy = get_entropy(result, edge, stat_pi=True)
@@ -244,8 +243,6 @@ def compute_stats(result: c3_types.SerialisableType) -> c3_types.SerialisableTyp
 
 
 def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
-    from cogent3.app import io
-
     LOGGER = CachingLogger(create_dir=True)
     LOGGER.log_args()
 
@@ -254,26 +251,36 @@ def gn_statistics(inpath, outpath, parallel, limit, overwrite, verbose):
 
     LOGGER.log_file_path = outpath.parent / "mdeqasis-gn_statistics.log"
 
-    dstore = io.get_data_store(inpath, limit=limit)
+    dstore = open_data_store(inpath, limit=limit)
 
-    overwrite = "overwrite" if overwrite else "raise"
-    loader = sql_loader()
+    loader = load_from_sqldb()
     calc_stats = compute_stats()
-    writer = sql_writer(outpath, create=True, if_exists=overwrite)
+
+    if outpath.exists() and not overwrite:
+        raise IOError(f"{str(outpath)} exists")
+
+    outpath.parent.mkdir(exist_ok=True)
+    out_dstore = open_data_store(outpath, mode="w")
+
+    writer = write_to_sqldb(out_dstore)
+
     within_bounds = mles_within_bounds()
     app = loader + within_bounds + calc_stats + writer
-    r = app.apply_to(
-        dstore,
+    out_dstore = app.apply_to(
+        dstore.completed,
         logger=LOGGER,
         cleanup=True,
         show_progress=verbose > 1,
         parallel=parallel,
     )
-    rich_display(app.data_store.describe)
-    if len(app.data_store.incomplete) > 0 and verbose:
-        rich_display(app.data_store.summary_incomplete)
 
-    app.data_store.close()
+    out_dstore.unlock()
+
+    rich_display(out_dstore.describe)
+    if len(out_dstore.not_completed) > 0 and verbose:
+        rich_display(summary_not_completed(out_dstore))
+
+    out_dstore.close()
 
     return True
 

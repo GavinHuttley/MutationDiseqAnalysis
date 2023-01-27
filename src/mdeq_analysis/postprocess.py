@@ -10,7 +10,7 @@ from rich.progress import track
 
 def get_pvalues(dstore) -> defaultdict:
     """returns chisq_pvals and bootstrap_pvals"""
-    loader = io.load_db()
+    loader = get_app("load_db")
     pvals = defaultdict(list)
     is_hyp_result = None
     for m in track(dstore):
@@ -42,10 +42,12 @@ def write_quantiles(path, limit=None, overwrite=False, verbose=0):
         print(f"loading {limit} dstore records")
 
     limit = limit or 1000
-    dstore = io.get_data_store(path, limit=limit)
-    if len(dstore.incomplete) > 0:
-        print(f"{path.stem} has {limit - len(dstore.incomplete)} incompleted results!")
-        rich_display(dstore.summary_incomplete)
+    dstore = open_data_store(path, limit=limit)
+    if len(dstore.not_completed) > 0:
+        print(
+            f"{path.stem} has {limit - len(dstore.not_completed)} incompleted results!"
+        )
+        rich_display(dstore.summary_not_completed)
         if len(dstore) == 0:
             return False
 
