@@ -1,7 +1,10 @@
 import re
+
 from pathlib import Path
+
 from cogent3 import load_table, make_table, open_data_store
 from mdeq.utils import load_from_sqldb
+
 
 _num = re.compile(r"\d+")
 
@@ -61,14 +64,24 @@ def make_latex_table(table):
         m.columns[c] = [_format_element(e) for e in col]
 
     data = m.columns.to_dict()
-    data[r""] = [r"$\hat{p}$-value", r"$\hat\delta_{\nabla}$", r"$\hat\sigma_\nabla$", "length"]
+    data[r""] = [
+        r"$\hat{p}$-value",
+        r"$\hat\delta_{\nabla}$",
+        r"$\hat\sigma_\nabla$",
+        "length",
+    ]
     table = make_table(data=data)
-    return table.with_new_header(table.header, (r"Statistic \textbackslash ~ Exon rank",) + table.header[1:])
+    return table.with_new_header(
+        table.header, (r"Statistic \textbackslash ~ Exon rank",) + table.header[1:]
+    )
+
 
 def fxy_table(data_dir, result_dir):
-    align_lengths = get_alignment_lengths(data_dir / "introns-aligned-filtered.sqlitedb")
+    align_lengths = get_alignment_lengths(
+        data_dir / "introns-aligned-filtered.sqlitedb"
+    )
     pvalues = get_pvalues(result_dir / "toe/toe-fxy-intron-mmu.tsv")
-    dnabla = get_delta_nabla(result_dir / "convergence/convergence-fxy-intron-mmu.sqlitedb")
+    dnabla = get_delta_nabla(
+        result_dir / "convergence/convergence-fxy-intron-mmu.sqlitedb"
+    )
     return make_latex_table(merged(pvalues, dnabla, align_lengths))
-
-

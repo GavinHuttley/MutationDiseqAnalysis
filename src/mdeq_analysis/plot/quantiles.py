@@ -4,21 +4,24 @@ from pathlib import Path
 from cogent3 import load_table
 from cogent3.maths.stats.distribution import theoretical_quantiles
 from cogent3.util.table import Table
-import plotly.graph_objects as go
+from mdeq.utils import estimate_freq_null
+from plotly.graph_objects import Figure
 from plotly.io import full_figure_for_development
 from plotly.subplots import make_subplots
-from plotly.graph_objects import Figure
+
 from mdeq_analysis.plot import util
 
 
-def load_quantiles(path, col="chisq_pvals"):
+def load_quantiles(path, col="chisq_pval"):
     path = Path(path)
     tsv_path = path.parent / f"{path.stem}.tsv"
 
     table = load_table(tsv_path)
-    for col, data in table.columns.items():
+    table = table.get_columns(["name", col])
+
+    for c, data in table.columns.items():
         if data.dtype == float:
-            table.columns[col] = sorted(data)
+            table.columns[c] = sorted(data)
     table.title = path.stem
     table.columns["theoretical"] = theoretical_quantiles(table.shape[0], dist="uniform")
     return table[:, [c for c in table.header if c != "name"]]
@@ -115,7 +118,7 @@ def get_one_plot(paths, width, height):
         legend=dict(yanchor="top", y=0.97, xanchor="left", x=0.03),
     )
     # address plotly bug, suppress MathJax warning box
-    fig = full_figure_for_development(fig, warn=False)
+    full_figure_for_development(fig, warn=False)
     fig.update_xaxes(title_font_size=18, title_standoff=5)
     fig.update_yaxes(title_font_size=18, title_standoff=5)
     return fig
@@ -179,7 +182,7 @@ def load_ape_quantiles(klass: str, col: str) -> tuple[Table, Table, Table]:
     return obs, neg, pos
 
 
-def make_smiles_fig(cat: str, col: str) -> go.Figure:
+def make_smiles_fig(cat: str, col: str) -> Figure:
     """makes scatter plot showing the negative control, observed and positive control quantiles for th data indicated by cat
 
     Parameters
@@ -191,33 +194,42 @@ def make_smiles_fig(cat: str, col: str) -> go.Figure:
 
     Returns
     -------
-    go.Figure
+    Figure
     """
     loader = load_dros_quantiles if cat in "DsimDmel" else load_ape_quantiles
     obs, neg, pos = loader(cat, col)
 
     show_legend = set()
     obs_trace = get_trace(obs, col, "Observed", 0.8, show_legend)
+    f_0 = estimate_freq_null(obs.columns["bootstrap_pval"])
     pos_trace = get_trace(pos, col, "+ve", 0.8, show_legend)
     neg_trace = get_trace(neg, col, "-ve", 0.8, show_legend)
-    return go.Figure(
+    fig = Figure(
         {
             "data": [neg_trace, obs_trace, pos_trace],
             "layout": {"title": cat, "width": 600, "height": 600, "showlegend": True},
         }
     )
+    latex = r"\hat f_{\text{null}}\approx"
+    fig.add_annotation(
+        text=f"${latex}{f_0:.2f}$",
+        x=0.1,
+        y=0.8,
+        xref="x domain",
+        yref="y domain",
+        showarrow=False,
+        font=dict(size=20),
+    )
+    return fig
 
 
 def subplot_smiles(ape=True):
     col = "bootstrap_pval"
-    cats = ["cds", "intron"] if ape else ["Dmel", "Dsim"]
+    cats = ["CDS", "Intron"] if ape else ["Dmel", "Dsim"]
     smiles = [make_smiles_fig(cat, col) for cat in cats]
     # turn off the legend for the left-most subplot
     for e in smiles[0].data:
         e.showlegend = False
-
-    if ape:
-        cats = ["CDS", "Intron"]
 
     fig = make_subplots(
         rows=1,
@@ -230,7 +242,6 @@ def subplot_smiles(ape=True):
         y_title=r"$p-\text{value}(\text{bootstrap})$",
         subplot_titles=cats,
     )
-
     for col, smile in enumerate(smiles, start=1):
         fig.add_traces(smile.data, cols=col, rows=1)
 

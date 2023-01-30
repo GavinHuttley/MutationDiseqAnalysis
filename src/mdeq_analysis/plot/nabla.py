@@ -3,10 +3,8 @@ from pathlib import Path
 
 import plotly.express as px
 
-from cogent3 import make_table
-from cogent3.app import io
-from cogent3.maths.measure import jsd
-from mdeq.sqlite_data_store import sql_loader
+from cogent3 import make_table, open_data_store
+from mdeq.utils import load_from_sqldb
 from plotly.io import full_figure_for_development
 from plotly.subplots import make_subplots
 
@@ -17,10 +15,10 @@ def convert_to_table(path):
     """converts the delta_nabla instances to a table"""
     from mdeq import convergence  # required to register the deserialiser
 
-    loader = sql_loader()
-    dstore = io.get_data_store(path)
+    loader = load_from_sqldb()
+    dstore = open_data_store(path)
     results = defaultdict(list)
-    for m in dstore:
+    for m in dstore.completed:
         result = loader(m)
         results["nabla"].append(result.obs_nabla)
         results["delta_nabla"].append(result.delta_nabla)
@@ -93,16 +91,7 @@ def get_fig_for_stat(paths, stat):
 
 def fig_nabla_vs_delta_nabla(paths, width, height):
     """groups results by statistic"""
-    grouped_traces = defaultdict(list)
-    stats = ("nabla", "delta_nabla")
-    for size in ("300bp", "3000bp", "30000bp"):
-        for path in paths:
-            if size in path.name:
-                break
-        table = convert_to_table(path)
-        _, bp = util.path_components(path)
-        for stat in stats:
-            grouped_traces[stat].append(stat_to_trace(table, stat, bp, alpha=0.8))
+    grouped_traces, stats = nabla_vs_delta_nabla_traces(paths)
 
     fig = make_subplots(
         rows=2,
@@ -141,28 +130,43 @@ def fig_nabla_vs_delta_nabla(paths, width, height):
     return fig
 
 
+def nabla_vs_delta_nabla_traces(paths):
+    grouped_traces = defaultdict(list)
+    stats = ("nabla", "delta_nabla")
+    for size in ("300bp", "3000bp", "30000bp"):
+        for path in paths:
+            if size in path.name:
+                break
+        table = convert_to_table(path)
+        _, bp = util.path_components(path)
+        for stat in stats:
+            grouped_traces[stat].append(stat_to_trace(table, stat, bp, alpha=0.8))
+    return grouped_traces, stats
+
+
 def fig_comparing_jsd_delta_nabla(align_path, nabla_path, width, height):
     from .util import calc_jsd
 
-    aligns = io.get_data_store(align_path)
-    nablas = io.get_data_store(nabla_path)
-    loader = sql_loader()
+    aligns = open_data_store(align_path)
+    nablas = open_data_store(nabla_path)
+    loader = load_from_sqldb()
     x, y = [], []
-    for m in aligns:
+    for m in aligns.completed:
         aln = loader(m)
-        n_m = nablas.filtered(m.name)[0]
+        n_m = [r for r in nablas.completed if r.unique_id == m.unique_id][0]
         nabla = loader(n_m)
         x.append(calc_jsd(aln))
         y.append(nabla.delta_nabla)
 
-    fig = px.scatter(x=x, y=y)
+    fig = px.scatter(x=x, y=y, opacity=0.7)
+    fig.update_traces(marker={'size': 6})
     fig.update_layout(
         width=width,
         height=height,
         margin=dict(l=20, r=20, t=25, b=25),
     )
     fig.update_xaxes(
-        title_text=r"$\hat{JSD}$",
+        title_text=r"$\widehat{JSD}$",
         title_font_size=18,
         tickfont=dict(size=14),
         title_standoff=5,
@@ -182,17 +186,17 @@ def compare_nabla(ape=True):
         path_template = (
             "../results/ape/convergence/convergence-filtered-ape_aligned_{}.sqlitedb"
         )
-        cats = ["cds", "intron"]
+        cats = ["CDS", "Intron"]
     else:
         path_template = "../results/drosophila/convergence/convergence-toe-dmel_dsim_dyak-{}.sqlitedb"
         cats = ["Dmel", "Dsim"]
 
-    loader = sql_loader()
+    loader = load_from_sqldb()
     tables = []
     for cat in cats:
         rows = []
-        dstore = io.get_data_store(path_template.format(cat))
-        for m in dstore:
+        dstore = open_data_store(path_template.format(cat))
+        for m in dstore.completed:
             r = loader(m)
             name = Path(r.source).name.split(".")[0]
             rows.append((name, r.delta_nabla))
@@ -202,18 +206,28 @@ def compare_nabla(ape=True):
     table = table.with_new_header(f"right_{cats[1]}", cats[1])
     table.columns["diff"] = table.columns[cats[0]] - table.columns[cats[1]]
     num_gt = sum(table.columns["diff"] > 0)
-    print(f"{num_gt} / {table.shape[0]}, {100*num_gt/table.shape[0]:1f}")
     return table
 
 
-def histogram_nabla_diff(ape=True):
+def histogram_nabla_diff(ape=True, nbins=30):
     table = compare_nabla(ape=ape)
     stat = r"\hat\delta_{\nabla}"
-    elements = [c for c in table.columns if c not in "namediff"]
+    elements = [r"\text{%s}" % c for c in table.columns if c not in "namediff"]
     for index in (0, -1):
         elements.insert(index, stat)
 
     axis_title = "${}({})-{}({})$".format(*elements)
-    fig = px.histogram(x=table.columns["diff"], histnorm="probability", nbins=30)
-    fig.update_xaxes(title=axis_title)
+    fig = px.histogram(x=table.columns["diff"], histnorm="probability", nbins=nbins)
+    common_kwargs = dict(
+        title_font_size=18, tickfont=dict(size=14), title_standoff=5, dtick=0.25
+    )
+    fig.update_xaxes(title=axis_title, **common_kwargs)
+    fig.update_yaxes(title="Probability", **common_kwargs)
+    attr = dict(
+        width=700,
+        height=400,
+        margin=dict(l=60, r=10, t=25, b=60),
+    )
+    fig.update_layout(**attr)
+    # fig.add_trace(px.scatter(x=[0,0], y=[1, 1]))
     return fig
