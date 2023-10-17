@@ -1,19 +1,17 @@
 from collections import defaultdict
 
-from cogent3 import make_table
-from cogent3.app import io
+from cogent3 import make_table, open_data_store
 from cogent3.app import result as c3result
 from mdeq.toe import ALT_TOE, NULL_TOE
-from mdeq.utils import rich_display
+from mdeq.utils import load_from_sqldb, rich_display, summary_not_completed
 from rich.progress import track
 
 
 def get_pvalues(dstore) -> defaultdict:
     """returns chisq_pvals and bootstrap_pvals"""
-    loader = get_app("load_db")
+    loader = load_from_sqldb()
     pvals = defaultdict(list)
-    is_hyp_result = None
-    for m in track(dstore):
+    for m in track(dstore.completed):
         obj = loader(m)
         is_hyp_result = isinstance(obj, c3result.hypothesis_result)
         if is_hyp_result:
@@ -45,9 +43,9 @@ def write_quantiles(path, limit=None, overwrite=False, verbose=0):
     dstore = open_data_store(path, limit=limit)
     if len(dstore.not_completed) > 0:
         print(
-            f"{path.stem} has {limit - len(dstore.not_completed)} incompleted results!"
+            f"{path.stem} has {limit - len(dstore.not_completed)} incomplete results!"
         )
-        rich_display(dstore.summary_not_completed)
+        rich_display(summary_not_completed(dstore))
         if len(dstore) == 0:
             return False
 
