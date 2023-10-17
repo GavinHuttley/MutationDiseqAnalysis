@@ -47,3 +47,11 @@ The following subcommands were run:
 `fxy-align` -> Aligns the sequences from the 3 rodent genomes.
 
 `fxy-filter-positions` -> Produces the alignments for analysis, filtering positions to exclude gaps etc..
+
+## Notebooks
+
+Assume directory containing latex is sister to current directory
+
+Assumes all data and result files in place
+
+Generates all figs and tables for the manuscript plus supplementary material
