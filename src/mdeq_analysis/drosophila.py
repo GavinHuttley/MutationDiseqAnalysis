@@ -18,10 +18,12 @@ def load_flybase_tsv(path, limit=None):
 
     rows = []
     header = None
+    num_cols = 0
     num_records = 0
     with open_(path) as infile:
         for line in infile:
-            if not line.strip():
+            line = line.strip()
+            if not line:
                 continue
             if header is None and not _head.search(line):
                 continue
@@ -30,11 +32,20 @@ def load_flybase_tsv(path, limit=None):
                 line = line.replace("##", "")
 
                 header = [f.strip() for f in line.split("\t")]
+                num_cols = len(header)
                 continue
+            
             if line.startswith("#"):  # comment line
                 continue
+            
+            line = line.split("\t")
+            if missing := num_cols - len(line):
+                if missing > num_cols:
+                    raise ValueError(f"too many columns {line}")
 
-            rows.append(line.split("\t"))
+                line.extend([""] * missing)
+
+            rows.append(line)
             num_records += 1
             if num_records == limit:
                 break
