@@ -21,7 +21,6 @@ except NotImplementedError:
 
 from mdeq_analysis import fxy
 from mdeq_analysis import microbial as micro
-from mdeq_analysis import postprocess
 
 
 simplefilter("ignore", category=UserWarning, append=True)
