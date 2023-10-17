@@ -72,7 +72,7 @@ def mixed_smiled_hist(ape=True, nbins=30):
         title_standoff=5,
         dtick=0.05,
     )
-    fig.add_vline(x=0, row=2, line_width=3, line_dash="dash", line_color="black")
+    fig.add_vline(x=0, row=2, line_width=2, line_dash="dash", line_color="black")
     # address plotly bug, suppress MathJax warning box
     full_figure_for_development(fig, warn=False)
     return fig

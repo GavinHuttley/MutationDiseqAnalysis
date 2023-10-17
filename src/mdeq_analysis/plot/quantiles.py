@@ -85,11 +85,12 @@ def get_quantile_fig(paths: Path, stat: str, alpha: float = 0.4):
         util.annotated_subplot(fig, seed, col, row, 0.1, 0.9)
 
     fig.update_layout(
-        width=800,
+        width=900,
         height=800,
         legend_traceorder="reversed",
         legend_title_text="<b>Alignment Length</b>",
         legend_font=dict(size=14),
+        margin=dict(l=60, r=10, t=25, b=60),
     )
     fig.update_xaxes(tickfont=dict(size=14), dtick=0.25)
     fig.update_yaxes(tickfont=dict(size=14), dtick=0.25)
@@ -201,7 +202,8 @@ def make_smiles_fig(cat: str, col: str) -> Figure:
 
     show_legend = set()
     obs_trace = get_trace(obs, col, "Observed", 0.8, show_legend)
-    f_0 = estimate_freq_null(obs.columns["bootstrap_pval"])
+    # the freq of mutation diseq, f_MD
+    f_MD = 1 - estimate_freq_null(obs.columns["bootstrap_pval"])
     pos_trace = get_trace(pos, col, "+ve", 0.8, show_legend)
     neg_trace = get_trace(neg, col, "-ve", 0.8, show_legend)
     fig = Figure(
@@ -210,9 +212,9 @@ def make_smiles_fig(cat: str, col: str) -> Figure:
             "layout": {"title": cat, "width": 600, "height": 600, "showlegend": True},
         }
     )
-    latex = r"\hat f_{\text{null}}\approx"
+    latex = r"\hat f_{\text{MD}}\approx"
     fig.add_annotation(
-        text=f"${latex}{f_0:.2f}$",
+        text=f"${latex}{f_MD:.2f}$",
         x=0.1,
         y=0.8,
         xref="x domain",
@@ -249,7 +251,7 @@ def subplot_smiles(ape=True):
         width=700,
         height=400,
         legend_title_text="Data Type",
-        margin=dict(l=60, r=10, t=25, b=25),
+        margin=dict(l=60, r=10, t=25, b=60),
     )
     fig.update_layout(**attr)
     fig.update_xaxes(
