@@ -59,9 +59,7 @@ def mixed_smiled_hist(ape=True, nbins=30):
     )
     fig.update_xaxes(showgrid=True, col=1, row=1, title="Theoretical Quantiles")
     fig.update_xaxes(showgrid=True, col=2, row=1, title="Theoretical Quantiles")
-    fig.update_yaxes(
-        showgrid=True, col=1, row=1, title=r"$p-\text{value}(\text{bootstrap})$"
-    )
+    fig.update_yaxes(showgrid=True, col=1, row=1, title=r"$p-\text{value (bootstrap})$")
     fig.update_yaxes(
         showgrid=True,
         col=1,

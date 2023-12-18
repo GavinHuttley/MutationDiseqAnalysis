@@ -202,7 +202,7 @@ def make_smiles_fig(cat: str, col: str) -> Figure:
 
     show_legend = set()
     obs_trace = get_trace(obs, col, "Observed", 0.8, show_legend)
-    # the freq of mutation diseq, f_MD
+    # the freq of neutral mutation diseq, f_NMD
     f_MD = 1 - estimate_freq_null(obs.columns["bootstrap_pval"])
     pos_trace = get_trace(pos, col, "+ve", 0.8, show_legend)
     neg_trace = get_trace(neg, col, "-ve", 0.8, show_legend)
@@ -212,7 +212,7 @@ def make_smiles_fig(cat: str, col: str) -> Figure:
             "layout": {"title": cat, "width": 600, "height": 600, "showlegend": True},
         }
     )
-    latex = r"\hat f_{\text{MD}}\approx"
+    latex = r"\hat f_{\text{NMD}}\approx"
     fig.add_annotation(
         text=f"${latex}{f_MD:.2f}$",
         x=0.1,
@@ -241,7 +241,7 @@ def subplot_smiles(ape=True):
         vertical_spacing=0.05,
         horizontal_spacing=0.05,
         x_title="Theoretical Quantiles",
-        y_title=r"$p-\text{value}(\text{bootstrap})$",
+        y_title=r"$p-\text{value (bootstrap})$",
         subplot_titles=cats,
     )
     for col, smile in enumerate(smiles, start=1):
