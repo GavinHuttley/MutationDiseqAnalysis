@@ -34,10 +34,10 @@ def load_flybase_tsv(path, limit=None):
                 header = [f.strip() for f in line.split("\t")]
                 num_cols = len(header)
                 continue
-            
+
             if line.startswith("#"):  # comment line
                 continue
-            
+
             line = line.split("\t")
             if missing := num_cols - len(line):
                 if missing > num_cols:

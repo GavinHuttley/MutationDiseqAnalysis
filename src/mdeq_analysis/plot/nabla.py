@@ -159,7 +159,7 @@ def fig_comparing_jsd_delta_nabla(align_path, nabla_path, width, height):
         y.append(nabla.delta_nabla)
 
     fig = px.scatter(x=x, y=y, opacity=0.7)
-    fig.update_traces(marker={'size': 6})
+    fig.update_traces(marker={"size": 6})
     fig.update_layout(
         width=width,
         height=height,

@@ -3,7 +3,11 @@ from pathlib import Path
 from plotly.io import full_figure_for_development
 from plotly.subplots import make_subplots
 
-from .nabla import histogram_nabla_diff, fig_comparing_jsd_delta_nabla, nabla_vs_delta_nabla_traces
+from .nabla import (
+    fig_comparing_jsd_delta_nabla,
+    histogram_nabla_diff,
+    nabla_vs_delta_nabla_traces,
+)
 from .quantiles import get_one_plot, make_smiles_fig
 
 
@@ -86,7 +90,11 @@ def make_mixed_properties(pval_paths, align_path, nabla_path, conv_paths):
         vertical_spacing=0.05,
         subplot_titles=[f"(<b>{n}</b>)" for n in "abc"],
         specs=[
-            [{"type": "scatter", "rowspan": 2}, {"type": "violin", "rowspan": 1}, {"type": "scatter", "rowspan": 2}],
+            [
+                {"type": "scatter", "rowspan": 2},
+                {"type": "violin", "rowspan": 1},
+                {"type": "scatter", "rowspan": 2},
+            ],
             [None, {"type": "violin", "rowspan": 1}, None],
         ],
     )
@@ -115,36 +123,96 @@ def make_mixed_properties(pval_paths, align_path, nabla_path, conv_paths):
     ## left
     fig.update_yaxes(range=[-0.05, 1.05], col=1, row=1, dtick=0.2)
     # y-axis
-    fig.add_annotation(x=-0.05, y=0.5, yanchor="middle", xshift=shift, yref="y1", xref="x1", textangle=-90, showarrow=False,
-                       text=r"$\large p-\text{value}(\chi^2)$")
+    fig.add_annotation(
+        x=-0.05,
+        y=0.5,
+        yanchor="middle",
+        xshift=shift,
+        yref="y1",
+        xref="x1",
+        textangle=-90,
+        showarrow=False,
+        text=r"$\large p-\text{value}(\chi^2)$",
+    )
     # x-axis
     fig.update_xaxes(range=[-0.05, 1.05], col=1, row=1, dtick=0.2)
-    fig.add_annotation(x=0.5, y=-0.05, xanchor="center", yshift=shift, yref="y1", xref="x1", showarrow=False,
-                       text=r"$\large \text{Theoretical Quantiles}$")
+    fig.add_annotation(
+        x=0.5,
+        y=-0.05,
+        xanchor="center",
+        yshift=shift,
+        yref="y1",
+        xref="x1",
+        showarrow=False,
+        text=r"$\large \text{Theoretical Quantiles}$",
+    )
 
     # middle plots
     for row in (1, 2):
         fig.update_yaxes(range=[-0.3, 0.65], col=2, row=row)
-        fig.update_xaxes(range=[-.5, 2.75], col=2, row=row, showticklabels=row==2)
+        fig.update_xaxes(range=[-0.5, 2.75], col=2, row=row, showticklabels=row == 2)
 
     # y-axis titles
     # top
-    fig.add_annotation(y=sum([-.3, .65]) / 2, x=-.5, yanchor="middle", xshift=shift, yref="y2", xref="x2", textangle=-90,
-                       showarrow=False, text=r"$\large \hat{\nabla}$")
+    fig.add_annotation(
+        y=sum([-0.3, 0.65]) / 2,
+        x=-0.5,
+        yanchor="middle",
+        xshift=shift,
+        yref="y2",
+        xref="x2",
+        textangle=-90,
+        showarrow=False,
+        text=r"$\large \hat{\nabla}$",
+    )
     # bottom
-    fig.add_annotation(y=sum([-.3, .65]) / 2, x=-.5, yanchor="middle", xshift=shift, yref="y4", xref="x4", textangle=-90,
-                       showarrow=False, text=r"$\large \hat\delta_{\nabla}$")
+    fig.add_annotation(
+        y=sum([-0.3, 0.65]) / 2,
+        x=-0.5,
+        yanchor="middle",
+        xshift=shift,
+        yref="y4",
+        xref="x4",
+        textangle=-90,
+        showarrow=False,
+        text=r"$\large \hat\delta_{\nabla}$",
+    )
     # x-axis title bottom only
-    fig.add_annotation(y=-0.3, x=sum([-.5, 2.75]) / 2, xanchor="center", yshift=shift, yref="y4", xref="x4",
-                       showarrow=False, text=r"$\large \text{Alignment Length}$")
+    fig.add_annotation(
+        y=-0.3,
+        x=sum([-0.5, 2.75]) / 2,
+        xanchor="center",
+        yshift=shift,
+        yref="y4",
+        xref="x4",
+        showarrow=False,
+        text=r"$\large \text{Alignment Length}$",
+    )
 
     # right axis titles
     fig.update_yaxes(range=[-0.1, 0.65], col=3, row=1)
     fig.update_xaxes(range=[-0.005, 0.06], col=3, row=1)
-    fig.add_annotation(x=-0.005, y=0.3, yanchor="middle", xshift=shift, yref="y3", xref="x3", textangle=-90, showarrow=False,
-                       text=r"$\large \hat\delta_{\nabla}$")
-    fig.add_annotation(x=sum([-0.005, 0.06])/2, y=-.1, xanchor="center", yshift=shift, yref="y3", xref="x3", showarrow=False,
-                       text=r"$\large \widehat{JSD}$")
+    fig.add_annotation(
+        x=-0.005,
+        y=0.3,
+        yanchor="middle",
+        xshift=shift,
+        yref="y3",
+        xref="x3",
+        textangle=-90,
+        showarrow=False,
+        text=r"$\large \hat\delta_{\nabla}$",
+    )
+    fig.add_annotation(
+        x=sum([-0.005, 0.06]) / 2,
+        y=-0.1,
+        xanchor="center",
+        yshift=shift,
+        yref="y3",
+        xref="x3",
+        showarrow=False,
+        text=r"$\large \widehat{JSD}$",
+    )
     fig.update_xaxes(tickfont=dict(size=10))
     fig.update_yaxes(tickfont=dict(size=10))
     attr = dict(
