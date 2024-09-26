@@ -1,8 +1,19 @@
 # Mutation Disequilibrium Analysis
 
-These are controlled vi the `mdeqasis` command line tool.
+These are controlled via the `mdeqasis` command line tool.
 
-## Analysis of microbial 16S sequences
+# TODO
+
+- [ ] All of the data should be uploaded to Zenodo
+- [ ] write a script that copies all the data and results from zenodo into the container if the data and results are not already present
+- [ ] connect the script to the dockerfile via `devcontainer.json` file
+- [ ] Provide a link to our other instructions on using VS Code to open a directory when you have Docker installed and instantiate a container.
+
+## Running the commands
+
+We provide a Dockerfile for constructing the computational environment necessary to repeat these analyses.
+
+## Sampling of microbial 16S sequences
 
 The following subcommands were run:
 
@@ -12,7 +23,7 @@ The following subcommands were run:
 
 `microbial-gn-stats` -> extracts statistics for sampling the four seed alignments
 
-## Analysis of the ape sequences
+## Sampling of the ape sequences
 
 The following subcommands were run:
 
@@ -20,9 +31,9 @@ The following subcommands were run:
 
 `ape-match-cds-intron` -> Filters intron and CDS alignments based on number of aligned positions and sequence complexity. Produces a separate sqlitedb for CDS and introns.
 
-## Analysis of microbial sequences
+## Sampling of microbial sequences
 
-`filter-alignments` -> Converts nexus formatted aligned sequences into a rinydb, dropping aligned columns with gaps.
+`filter-alignments` -> Converts nexus formatted aligned sequences into a sqlitedb, dropping aligned columns with gaps.
 
 `microbial-fit-gn` -> Fits GN model to the collection of microbial 16S alignments.
 
@@ -38,13 +49,13 @@ The following subcommands were run:
 
 `microbial-teop-synthetic` -> Generates synthetic alignments for the teop analyses.
 
-## Analysis of Drosophila sequences
+## Sampling of Drosophila sequences
 
 `dros-filter-alignments` -> Samples from alignments 3rd codon positions and other hard-coded sampling conditions.
 
-## Analysis of Fxy sequences
+## Sampling of Fxy sequences
 
-`fxy-align` -> Aligns the sequences from the 3 rodent genomes.
+The sequences from the 3 rodent genomes were aligned. The evaluation of alignment quality and the subsequent selection of alignments for further analysis was done using `nks/sample_fxy_introns.ipynb`. Selected alignments were written to `data/raw/fxy/introns/selected`.
 
 `fxy-filter-positions` -> Produces the alignments for analysis, filtering positions to exclude gaps etc..
 
