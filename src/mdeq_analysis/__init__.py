@@ -2,7 +2,6 @@
 import mdeq  # isort: skip  # make sure this stays at the top
 import glob
 import inspect
-
 from pathlib import Path
 from warnings import simplefilter
 
@@ -10,18 +9,8 @@ import click
 import mdeq._click_options as mdeq_opt
 
 
-try:
-    from wakepy import set_keepawake, unset_keepawake
-except NotImplementedError:
-    # probably on linux where this library doesn't work
-    make_none = type(None)
-
-    set_keepawake, unset_keepawake = make_none, make_none
-
-
 from mdeq_analysis import fxy
 from mdeq_analysis import microbial as micro
-
 
 simplefilter("ignore", category=UserWarning, append=True)
 
@@ -84,14 +73,13 @@ def filter_alignments(**kwargs):
 @mdeq_opt._verbose
 def microbial_fit_gn(**kwargs):
     """fits GN to microbial 16S data"""
-    set_keepawake(keep_screen_awake=False)
-    result = micro.fit_gn(**kwargs)
-    func_name = inspect.stack()[0].function
-    if result:
-        click.secho(f"{func_name!r} is done!", fg="green")
-    else:
-        click.secho(f"{func_name!r} failed!", fg="red")
-    unset_keepawake()
+    with mdeq.utils.keepawake():
+        result = micro.fit_gn(**kwargs)
+        func_name = inspect.stack()[0].function
+        if result:
+            click.secho(f"{func_name!r} is done!", fg="green")
+        else:
+            click.secho(f"{func_name!r} failed!", fg="red")
 
 
 @main.command()
@@ -184,17 +172,14 @@ def microbial_nabla(**kwargs):
     if kwargs["verbose"]:
         print(paths)
 
-    set_keepawake(keep_screen_awake=False)
-
-    for i, path in enumerate(
-        map(lambda x: micro.generate_convergence(x, **kwargs), paths)
-    ):
-        if path:
-            click.secho(f"{func_name!r} success for {paths[i].name!r}", fg="green")
-        else:
-            click.secho(f"{func_name!r} failed  for {paths[i].name!r}", fg="red")
-
-    unset_keepawake()
+    with mdeq.utils.keepawake():
+        for i, path in enumerate(
+            map(lambda x: micro.generate_convergence(x, **kwargs), paths)
+        ):
+            if path:
+                click.secho(f"{func_name!r} success for {paths[i].name!r}", fg="green")
+            else:
+                click.secho(f"{func_name!r} failed  for {paths[i].name!r}", fg="red")
 
 
 @main.command()
