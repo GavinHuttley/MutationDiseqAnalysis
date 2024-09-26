@@ -11,7 +11,8 @@ from plotly.subplots import make_subplots
 
 def convert_to_table(path):
     """converts the delta_nabla instances to a table"""
-    from mdeq import convergence  # required to register the deserialiser
+    # need import to register deserialiser
+    from mdeq import convergence  # noqa: F401
 
     loader = load_from_sqldb()
     dstore = open_data_store(path)
