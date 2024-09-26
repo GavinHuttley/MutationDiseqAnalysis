@@ -146,10 +146,13 @@ def filter_positions(inpath, outpath, overwrite, verbose):
     LOGGER.log_args()
 
     LOGGER.log_file_path = outpath.parent / "mdeqasis-fxy-filter_alignments.log"
+    if inpath.suffix == ".sqlitedb":
+        dstore = open_data_store(inpath)
+        loader = load_from_sqldb()
+    else:
+        dstore = open_data_store(inpath, suffix="fa")
+        loader = get_app("load_aligned", moltype="dna", format="fasta")
 
-    dstore = open_data_store(inpath)
-
-    loader = load_from_sqldb()
     just_nucs = get_app(
         "omit_degenerates", moltype="dna", motif_length=1, gap_is_degen=True
     )
