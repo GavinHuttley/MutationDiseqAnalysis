@@ -19,6 +19,9 @@ __credits__ = ["Gavin Huttley"]
 
 __version__ = "2022.03.14"
 
+_click_command_opts = dict(
+    no_args_is_help=True,
+    context_settings={"show_default": True},)
 
 @click.group()
 def main():
@@ -47,7 +50,7 @@ _indir = click.option(
 )
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @_indir
 @click.option("-s", "--suffix", help="suffix of files within indir to be loaded")
 @mdeq_opt._outpath
@@ -63,7 +66,7 @@ def filter_alignments(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @mdeq_opt._inpath
 @mdeq_opt._outpath
 @mdeq_opt._parallel
@@ -82,7 +85,7 @@ def microbial_fit_gn(**kwargs):
             click.secho(f"{func_name!r} failed!", fg="red")
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @mdeq_opt._inpath
 @mdeq_opt._outpath
 @mdeq_opt._parallel
@@ -99,7 +102,7 @@ def microbial_gn_stats(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @click.option(
     "-a", "--aligns_path", type=Path, required=True, help="path to alignment sqlitedb"
 )
@@ -121,7 +124,7 @@ def micro_select_alignments(**kwargs):
 #
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @mdeq_opt._inpath
 @mdeq_opt._outdir
 @mdeq_opt._just_continuous
@@ -158,7 +161,7 @@ _glob_indir = click.option(
 )
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @_glob_indir
 @mdeq_opt._outdir
 @mdeq_opt._wrt_nstat
@@ -172,7 +175,7 @@ def microbial_nabla(**kwargs):
     if kwargs["verbose"]:
         print(paths)
 
-    with mdeq.utils.keepawake():
+    with mdeq.utils.keep_running():
         for i, path in enumerate(
             map(lambda x: micro.generate_convergence(x, **kwargs), paths)
         ):
@@ -182,7 +185,7 @@ def microbial_nabla(**kwargs):
                 click.secho(f"{func_name!r} failed  for {paths[i].name!r}", fg="red")
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @_glob_indir
 @mdeq_opt._limit
 @mdeq_opt._overwrite
@@ -202,7 +205,7 @@ def microbial_aeop_locations(**kwargs):
             break
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @mdeq_opt._inpath
 @mdeq_opt._outdir
 @_seed_aln
@@ -222,7 +225,7 @@ def microbial_teop_synthetic(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @_indir
 @click.option(
     "-fb", "--fb_table", required=True, type=Path, help="flybase gene order table"
@@ -244,7 +247,7 @@ def dros_filter_alignments(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @click.option(
     "-cd",
     "--cds_indir",
@@ -279,7 +282,7 @@ def ape_align_cds(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @click.option(
     "-cp",
     "--cds_path",
@@ -311,7 +314,7 @@ def ape_match_cds_intron(**kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
-@main.command()
+@main.command(**_click_command_opts)
 @click.option(
     "-mmu",
     "--mmu_path",
@@ -347,8 +350,14 @@ def fxy_align(*args, **kwargs):
         click.secho(f"{func_name!r} failed!", fg="red")
 
 
-@main.command()
-@mdeq_opt._inpath
+@main.command(**_click_command_opts)
+@click.option(
+    "-i",
+    "--inpath",
+    required=True,
+    type=Path,
+    help="path to a sqlitedb file or directory of fa aligments",
+)
 @mdeq_opt._outpath
 @mdeq_opt._overwrite
 @mdeq_opt._verbose
