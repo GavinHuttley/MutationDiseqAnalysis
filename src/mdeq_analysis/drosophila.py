@@ -1,14 +1,11 @@
 import re
-
 from pathlib import Path
 
 from cogent3 import get_app, open_data_store
 from mdeq.utils import rich_display, summary_not_completed, write_to_sqldb
+from mdeq_analysis.align_checked import alignment_filter, sequence_filter
 from rich.progress import track
 from scitrack import CachingLogger
-
-from mdeq_analysis.align_checked import alignment_filter, sequence_filter
-
 
 _head = re.compile("##\s*(FBgn_ID|organism)")
 

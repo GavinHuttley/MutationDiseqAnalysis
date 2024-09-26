@@ -1,10 +1,7 @@
 import re
 
-from pathlib import Path
-
 from cogent3 import load_table, make_table, open_data_store
 from mdeq.utils import load_from_sqldb
-
 
 _num = re.compile(r"\d+")
 

@@ -1,8 +1,6 @@
 import numpy as np
-
 from cogent3.app import typing as c3_types
 from cogent3.app.composable import NotCompleted, define_app
-
 
 __author__ = ["Gavin Huttley", "Chris Bradley"]
 __credits__ = ["Chris Bradley", "Gavin Huttley", "Kath Caley"]

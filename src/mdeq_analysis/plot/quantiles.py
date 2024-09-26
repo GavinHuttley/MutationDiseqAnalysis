@@ -5,11 +5,10 @@ from cogent3 import load_table
 from cogent3.maths.stats.distribution import theoretical_quantiles
 from cogent3.util.table import Table
 from mdeq.utils import estimate_freq_null
+from mdeq_analysis.plot import util
 from plotly.graph_objects import Figure
 from plotly.io import full_figure_for_development
 from plotly.subplots import make_subplots
-
-from mdeq_analysis.plot import util
 
 
 def load_quantiles(path, col="chisq_pval"):

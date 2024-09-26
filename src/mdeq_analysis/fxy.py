@@ -12,7 +12,6 @@ from mdeq.utils import (
 )
 from scitrack import CachingLogger
 
-
 # we combine the unaligned intron sequences from 3 separate directories
 # we also rename the sequences
 

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from plotly.io import full_figure_for_development
 from plotly.subplots import make_subplots
 

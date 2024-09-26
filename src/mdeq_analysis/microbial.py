@@ -1,7 +1,7 @@
 """sampling and analysis of microbial data"""
+
 import inspect
 import pathlib
-
 from dataclasses import asdict, dataclass
 
 from cogent3 import get_app, make_table, open_data_store
@@ -14,7 +14,6 @@ from mdeq.stationary_pi import get_stat_pi_via_eigen
 from mdeq.utils import (
     SerialisableMixin,
     configure_parallel,
-    foreground_from_jsd,
     load_from_sqldb,
     rich_display,
     summary_not_completed,
@@ -24,7 +23,6 @@ from numpy import iinfo, int64, random
 from numpy.linalg import cond, eig
 from rich.progress import track
 from scitrack import CachingLogger
-
 
 __author__ = "Gavin Huttley"
 __credits__ = ["Kath Caley", "Gavin Huttley"]
@@ -90,7 +88,6 @@ def filter_alignments(indir, outpath, suffix, limit, overwrite):
 
 def fit_gn(inpath, outpath, parallel, mpi, limit, overwrite, verbose):
     """fits GN to microbial 16S data"""
-    from cogent3.app import evo, io
 
     LOGGER = CachingLogger(create_dir=True)
     LOGGER.log_args()

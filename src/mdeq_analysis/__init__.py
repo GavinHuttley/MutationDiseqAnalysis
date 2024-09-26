@@ -1,4 +1,5 @@
 """scripts for analysis steps associated with the mdeq app"""
+
 import mdeq  # isort: skip  # make sure this stays at the top
 import glob
 import inspect
@@ -21,7 +22,9 @@ __version__ = "2022.03.14"
 
 _click_command_opts = dict(
     no_args_is_help=True,
-    context_settings={"show_default": True},)
+    context_settings={"show_default": True},
+)
+
 
 @click.group()
 def main():

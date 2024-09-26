@@ -1,9 +1,7 @@
 import re
-
 from pathlib import Path
 
 from cogent3.maths.measure import jsd
-
 
 _seed = re.compile("(hi|lo)_(hi|lo)")
 _aln_length = re.compile(r"\d+bp")

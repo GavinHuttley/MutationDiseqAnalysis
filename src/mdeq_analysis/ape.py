@@ -1,5 +1,4 @@
 import re
-
 from pathlib import Path
 
 from cogent3 import get_app, load_table, open_data_store
@@ -9,11 +8,9 @@ from mdeq.utils import (
     summary_not_completed,
     write_to_sqldb,
 )
+from mdeq_analysis.align_checked import sequence_filter
 from rich.progress import track
 from scitrack import CachingLogger
-
-from mdeq_analysis.align_checked import sequence_filter
-
 
 _suffixes = re.compile(r"(\.fa|\.gz|.json)")
 

@@ -2,13 +2,11 @@ from collections import defaultdict
 from pathlib import Path
 
 import plotly.express as px
-
 from cogent3 import make_table, open_data_store
 from mdeq.utils import load_from_sqldb
+from mdeq_analysis.plot import util
 from plotly.io import full_figure_for_development
 from plotly.subplots import make_subplots
-
-from mdeq_analysis.plot import util
 
 
 def convert_to_table(path):
