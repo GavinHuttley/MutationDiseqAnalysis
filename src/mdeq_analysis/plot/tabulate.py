@@ -68,8 +68,10 @@ def make_latex_table(table):
         "length",
     ]
     table = make_table(data=data)
+    new_order = [table.header[0]] + sorted(table.header[1:])
+    table = table[:, new_order]
     return table.with_new_header(
-        table.header, (r"Statistic \textbackslash ~ Exon rank",) + table.header[1:]
+        table.header, (r"Statistic \textbackslash ~ Intron rank",) + table.header[1:]
     )
 
 
@@ -78,7 +80,9 @@ def fxy_table(data_dir, result_dir):
         data_dir / "introns-aligned-filtered.sqlitedb"
     )
     pvalues = get_pvalues(result_dir / "toe/toe-fxy-intron-mmu.tsv")
-    dnabla = get_delta_nabla(
-        result_dir / "convergence/convergence-fxy-intron-mmu.sqlitedb"
+    dnabla = load_table(
+        result_dir / "convergence/convergence-fxy-intron-mmu.tsv"
     )
+    dnabla.columns["rank"] = [_num.findall(v)[0] for v in dnabla.columns["source"]]
+    dnabla = dnabla[:, ["rank", "delta_nabla", "std"]].sorted(columns="rank")
     return make_latex_table(merged(pvalues, dnabla, align_lengths))

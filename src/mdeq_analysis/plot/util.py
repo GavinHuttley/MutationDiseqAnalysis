@@ -1,4 +1,6 @@
 import re
+import time
+from plotly.io import write_image
 from pathlib import Path
 
 from cogent3.maths.measure import jsd
@@ -56,3 +58,21 @@ def calc_jsd(aln):
     counts = aln.counts_per_seq()
     freqs = counts.to_freq_array()
     return jsd(*freqs.array)
+
+
+class pdf_writer:
+    """class that handles super annooying mathjax warning box in plotly pdf's"""
+
+    def __init__(self) -> None:
+        self._done_once = False
+
+    def __call__(self, fig, path):
+        # the sleep, plus successive write, is ESSENTIAL to avoid the super annoying
+        # "[MathJax]/extensions/MathMenu.js" text box error
+        # but we only need to do this once
+        if not self._done_once:
+            write_image(fig, path)
+            time.sleep(2)
+            self._done_once = True
+        
+        write_image(fig, path)
