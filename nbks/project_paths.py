@@ -11,6 +11,9 @@ OUTPUT_ROOT = ROOT_DIR / "MutationDiseqMS"
 FIG_DIR = OUTPUT_ROOT / "figs"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
+SUPP_FIG_DIR = OUTPUT_ROOT / "figs_supp"
+SUPP_FIG_DIR.mkdir(parents=True, exist_ok=True)
+
 TABLE_DIR = OUTPUT_ROOT / "tables"
 TABLE_DIR.mkdir(parents=True, exist_ok=True)
 
