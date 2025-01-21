@@ -1,10 +1,6 @@
-import os
 import pathlib
 
-if os.environ["LOGNAME"] == "gavin":
-    ROOT_DIR = pathlib.Path("~/repos/MutationDiseq").expanduser()
-else:
-    ROOT_DIR = pathlib.Path("~/MutDiseq").expanduser()
+ROOT_DIR = pathlib.Path(__file__).parent.parent.parent
 
 OUTPUT_ROOT = ROOT_DIR / "MutationDiseqMS"
 
