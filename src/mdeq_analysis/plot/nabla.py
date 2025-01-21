@@ -136,6 +136,8 @@ def nabla_vs_delta_nabla_traces(paths):
         for path in paths:
             if size in path.name:
                 break
+        else:
+            raise ValueError(f"no path found for {size} in {paths}")
         table = convert_to_table(path)
         _, bp = util.path_components(path)
         for stat in stats:
