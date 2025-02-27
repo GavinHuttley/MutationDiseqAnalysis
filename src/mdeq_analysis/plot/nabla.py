@@ -207,6 +207,8 @@ def compare_nabla(ape=True):
     table = table.with_new_header(f"right_{cats[1]}", cats[1])
     table.columns["diff"] = table.columns[cats[0]] - table.columns[cats[1]]
     num_gt = sum(table.columns["diff"] > 0)
+    num_gt = sum(table.columns["diff"] > 0)
+    print(f"Number {cats[0]} > {cats[1]} = {num_gt} out of total {table.shape[0]}")
     return table
 
 
