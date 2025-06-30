@@ -45,11 +45,11 @@ def get_fig_for_stat(paths, stat):
         seed, bp = util.path_components(path)
         grouped_traces[seed].append(stat_to_trace(table, stat, bp, alpha=0.8))
 
-    y_title = r"$\hat\nabla$" if stat == "nabla" else r"$\hat\delta_{\nabla}$"
+    y_title = r"$\hat\nabla$" if stat == "nabla" else r"$\hat\nabla_c$"
     title = (
         r"$\nabla \text{ standard scaling}$"
         if stat == "nabla"
-        else r"$\delta_{nabla} \text{ standard scaling}$"
+        else r"$\hat\nabla_c \text{ standard scaling}$"
     )
     fig = make_subplots(
         rows=2,
@@ -118,7 +118,7 @@ def fig_nabla_vs_delta_nabla(paths, width, height):
     )
     fig.update_yaxes(title_text=r"$\hat{\nabla}$", col=1, row=1, title_font_size=18)
     fig.update_yaxes(
-        title_text=r"$\hat\delta_{\nabla}$",
+        title_text=r"$\hat\nabla_c$",
         col=1,
         row=2,
     )
@@ -145,7 +145,7 @@ def nabla_vs_delta_nabla_traces(paths):
     return grouped_traces, stats
 
 
-def fig_comparing_jsd_delta_nabla(align_path, nabla_path, width, height):
+def fig_comparing_jsd_delta_nabla(align_path, nabla_path, width, height, log_scale_x=False):
     from .util import calc_jsd
 
     aligns = open_data_store(align_path)
@@ -166,14 +166,17 @@ def fig_comparing_jsd_delta_nabla(align_path, nabla_path, width, height):
         height=height,
         margin=dict(l=20, r=20, t=25, b=25),
     )
-    fig.update_xaxes(
+    xaxis_kwargs = dict(
         title_text=r"$\widehat{JSD}$",
         title_font_size=18,
         tickfont=dict(size=14),
         title_standoff=5,
     )
+    if log_scale_x:
+        xaxis_kwargs["type"] = "log"
+    fig.update_xaxes(**xaxis_kwargs)
     fig.update_yaxes(
-        title_text=r"$\hat\delta_{\nabla}$",
+        title_text=r"$\hat\nabla_c$",
         title_font_size=18,
         tickfont=dict(size=14),
         title_standoff=5,
@@ -214,7 +217,7 @@ def compare_nabla(ape=True):
 
 def histogram_nabla_diff(ape=True, nbins=30):
     table = compare_nabla(ape=ape)
-    stat = r"\hat\delta_{\nabla}"
+    stat = r"\hat\nabla_c"
     elements = [r"\text{%s}" % c for c in table.columns if c not in "namediff"]
     for index in (0, -1):
         elements.insert(index, stat)

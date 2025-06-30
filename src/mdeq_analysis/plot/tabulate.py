@@ -63,7 +63,7 @@ def make_latex_table(table):
     data = m.columns.to_dict()
     data[r""] = [
         r"$\hat{p}$-value",
-        r"$\hat\delta_{\nabla}$",
+        r"$\hat\nabla_c$",
         r"$\hat\sigma_\nabla$",
         "length",
     ]

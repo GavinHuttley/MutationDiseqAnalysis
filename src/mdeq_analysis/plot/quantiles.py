@@ -3,7 +3,7 @@ from pathlib import Path
 
 from cogent3 import load_table
 from cogent3.maths.stats.distribution import theoretical_quantiles
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 from mdeq.utils import estimate_freq_null
 from mdeq_analysis.plot import util
 from plotly.graph_objects import Figure

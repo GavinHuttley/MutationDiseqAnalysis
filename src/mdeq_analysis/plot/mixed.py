@@ -173,7 +173,7 @@ def make_mixed_properties(pval_paths, align_path, nabla_path, conv_paths):
         xref="x4",
         textangle=-90,
         showarrow=False,
-        text=r"$\large \hat\delta_{\nabla}$",
+        text=r"$\large \hat\nabla_c$",
     )
     # x-axis title bottom only
     fig.add_annotation(
@@ -199,7 +199,7 @@ def make_mixed_properties(pval_paths, align_path, nabla_path, conv_paths):
         xref="x3",
         textangle=-90,
         showarrow=False,
-        text=r"$\large \hat\delta_{\nabla}$",
+        text=r"$\large \hat\nabla_c$",
     )
     fig.add_annotation(
         x=sum([-0.005, 0.06]) / 2,
