@@ -74,7 +74,7 @@ def group_orthologs(
         data.extend(MinimalFastaParser(dname / base_name))
 
     return make_unaligned_seqs(
-        data=data,
+        data,
         moltype="dna",
         info={"source": base_name},
     )
