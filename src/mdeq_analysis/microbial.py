@@ -24,10 +24,6 @@ from numpy.linalg import cond, eig
 from rich.progress import track
 from scitrack import CachingLogger
 
-__author__ = "Gavin Huttley"
-__credits__ = ["Kath Caley", "Gavin Huttley"]
-__version__ = "2022.03.14"
-
 
 def load_seed_alignment(inpath, seed_aln):
     """loads the alignment with matching name to seed_aln"""

@@ -15,9 +15,6 @@ from mdeq_analysis import microbial as micro
 
 simplefilter("ignore", category=UserWarning, append=True)
 
-__author__ = "Gavin Huttley"
-__credits__ = ["Gavin Huttley"]
-
 __version__ = "2022.03.14"
 
 _click_command_opts = dict(
