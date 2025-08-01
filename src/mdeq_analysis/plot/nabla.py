@@ -145,7 +145,9 @@ def nabla_vs_delta_nabla_traces(paths):
     return grouped_traces, stats
 
 
-def fig_comparing_jsd_delta_nabla(align_path, nabla_path, width, height, log_scale_x=False):
+def fig_comparing_jsd_delta_nabla(
+    align_path, nabla_path, width, height, log_scale_x=False
+):
     from .util import calc_jsd
 
     aligns = open_data_store(align_path)

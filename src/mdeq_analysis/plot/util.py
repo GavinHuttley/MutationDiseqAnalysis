@@ -74,5 +74,5 @@ class pdf_writer:
             write_image(fig, path)
             time.sleep(2)
             self._done_once = True
-        
+
         write_image(fig, path)

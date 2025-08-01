@@ -22,6 +22,7 @@ SUPP_TABLE_DIR.mkdir(parents=True, exist_ok=True)
 DATA_DIR = ROOT_DIR / "MutationDiseqAnalysis/data"
 RESULT_DIR = ROOT_DIR / "MutationDiseqAnalysis/results"
 
+
 class pdf_writer:
     """class that handles super annoying mathjax warning box in plotly pdf's"""
 
@@ -38,5 +39,6 @@ class pdf_writer:
             self._done_once = True
 
         write_image(fig, path)
+
 
 write_pdf = pdf_writer()

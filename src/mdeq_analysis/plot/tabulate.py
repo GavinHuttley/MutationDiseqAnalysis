@@ -80,9 +80,7 @@ def fxy_table(data_dir, result_dir):
         data_dir / "introns-aligned-filtered.sqlitedb"
     )
     pvalues = get_pvalues(result_dir / "toe/toe-fxy-intron-mmu.tsv")
-    dnabla = load_table(
-        result_dir / "convergence/convergence-fxy-intron-mmu.tsv"
-    )
+    dnabla = load_table(result_dir / "convergence/convergence-fxy-intron-mmu.tsv")
     dnabla.columns["rank"] = [_num.findall(v)[0] for v in dnabla.columns["source"]]
     dnabla = dnabla[:, ["rank", "delta_nabla", "std"]].sorted(columns="rank")
     return make_latex_table(merged(pvalues, dnabla, align_lengths))
