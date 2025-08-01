@@ -37,3 +37,4 @@ hg_old*
 data/raw*
 results-old/*
 .ruff_cache/*
+.mypy_cache/*
