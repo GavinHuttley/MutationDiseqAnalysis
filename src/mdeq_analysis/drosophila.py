@@ -7,7 +7,7 @@ from mdeq_analysis.align_checked import alignment_filter, sequence_filter
 from rich.progress import track
 from scitrack import CachingLogger
 
-_head = re.compile("##\s*(FBgn_ID|organism)")
+_head = re.compile(r"##\s*(FBgn_ID|organism)")
 
 
 def load_flybase_tsv(path, limit=None):
