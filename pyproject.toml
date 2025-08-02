@@ -14,7 +14,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
     "mdeq",
-    "cogent3",
+    "cogent3[extra]",
     "click",
     "accupy; sys_platform == 'linux'",
     "scipy",
@@ -45,15 +45,10 @@ test = [
     "pytest-xdist",
 ]
 dev = [
-    "black",
-    "click",
     "cogapp",
     "docformatter",
     "flit",
-    "isort",
-    "pytest",
-    "pytest-cov",
-    "pytest-xdist"
+    "mdeq_analysis[test]"
 ]
 
 [tool.black]
