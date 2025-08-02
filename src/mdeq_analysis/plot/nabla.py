@@ -20,7 +20,7 @@ def convert_to_table(path):
     for m in dstore.completed:
         result = loader(m)
         results["nabla"].append(result.obs_nabla)
-        results["delta_nabla"].append(result.delta_nabla)
+        results["nabla_c"].append(result.nabla_c)
     return make_table(data=results, title=path.stem)
 
 
@@ -131,7 +131,7 @@ def fig_nabla_vs_delta_nabla(paths, width, height):
 
 def nabla_vs_delta_nabla_traces(paths):
     grouped_traces = defaultdict(list)
-    stats = ("nabla", "delta_nabla")
+    stats = ("nabla", "nabla_c")
     for size in ("300bp", "3000bp", "30000bp"):
         for path in paths:
             if size in path.name:
@@ -159,7 +159,7 @@ def fig_comparing_jsd_delta_nabla(
         n_m = [r for r in nablas.completed if r.unique_id == m.unique_id][0]
         nabla = loader(n_m)
         x.append(calc_jsd(aln))
-        y.append(nabla.delta_nabla)
+        y.append(nabla.nabla_c)
 
     fig = px.scatter(x=x, y=y, opacity=0.7)
     fig.update_traces(marker={"size": 6})
@@ -205,7 +205,7 @@ def compare_nabla(ape=True):
         for m in dstore.completed:
             r = loader(m)
             name = Path(r.source).name.split(".")[0]
-            rows.append((name, r.delta_nabla))
+            rows.append((name, r.nabla_c))
         tables.append(make_table(["name", cat], data=rows, index_name="name"))
 
     table = tables[0].inner_join(tables[1])

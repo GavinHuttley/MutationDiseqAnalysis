@@ -18,10 +18,10 @@ def get_delta_nabla(path):
     rows = []
     for m in dstore:
         r = loader(m)
-        rows.append((r.source, r.delta_nabla, r.std_null))
-    table = make_table(header=["name", "delta_nabla", "std"], data=rows)
+        rows.append((r.source, r.nabla_c, r.std_null))
+    table = make_table(header=["name", "nabla_c", "std"], data=rows)
     table.columns["rank"] = [_num.findall(v)[0] for v in table.columns["name"]]
-    return table[:, ["rank", "delta_nabla", "std"]]
+    return table[:, ["rank", "nabla_c", "std"]]
 
 
 def get_alignment_lengths(path):
