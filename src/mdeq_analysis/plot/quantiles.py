@@ -117,8 +117,15 @@ def get_one_plot(paths, width, height):
         margin=dict(l=60, r=10, t=25, b=25),
         legend=dict(yanchor="top", y=0.97, xanchor="left", x=0.03),
     )
-    # address plotly bug, suppress MathJax warning box
-    full_figure_for_development(fig, warn=False)
+    # Add diagonal line
+    fig.add_shape(
+        type="line",
+        x0=0,
+        y0=0,
+        x1=1,
+        y1=1,  # Adjust coordinates as needed
+        line=dict(color="black", width=2),
+    )
     fig.update_xaxes(title_font_size=18, title_standoff=5)
     fig.update_yaxes(title_font_size=18, title_standoff=5)
     return fig

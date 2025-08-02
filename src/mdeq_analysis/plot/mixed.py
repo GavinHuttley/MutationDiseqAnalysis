@@ -101,6 +101,18 @@ def make_mixed_properties(pval_paths, align_path, nabla_path, conv_paths):
     left = get_one_plot(pval_paths, None, None)
     fig.add_traces(left.data, cols=1, rows=1)
 
+    # Add diagonal line to subplot at row=1, col=1
+    fig.add_shape(
+        type="line",
+        x0=0,
+        y0=0,
+        x1=1,
+        y1=1,  # Adjust coordinates as needed
+        xref="x1",
+        yref="y1",
+        line=dict(color="black", width=2, dash="dash"),
+    )
+
     # middle piece, mid is a dict
     mid, stat_names = nabla_vs_delta_nabla_traces(conv_paths)
     fig.add_traces(mid[stat_names[0]], cols=2, rows=1)
@@ -218,5 +230,10 @@ def make_mixed_properties(pval_paths, align_path, nabla_path, conv_paths):
         height=300,
         margin=dict(l=60, r=10, t=25, b=60),
     )
-    fig.update_layout(**attr)
+    fig.update_layout(
+        legend_title_text="Data Type",
+        width=attr["width"],
+        height=attr["height"],
+        margin=attr["margin"],
+    )
     return fig
