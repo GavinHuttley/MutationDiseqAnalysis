@@ -1,0 +1,19 @@
+{
+    "name": "MutationDiseq",
+    "dockerFile": "../Dockerfile",
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/zsh",
+        "extensions.ignoreRecommendations": true
+    },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pytest",
+        "ms-toolsai.jupyter",
+    ],
+    "remoteUser": "user",
+    "workspaceFolder": "/home/user/",
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/home/user/MutationDiseqAnalysis,type=bind,consistency=cached"
+    ],
+    "containerName": "MutationDiseqAnalysis"
+}
