@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/469531989.svg)](https://doi.org/10.5281/zenodo.16830090)
+
 # Mutation Disequilibrium Analysis
 
 > **Warning**
