@@ -1,5 +1,8 @@
 # Mutation Disequilibrium Analysis
 
+> **Warning**
+> We are still completing the checklist below. Do not attempt to use this repo until the entire TODO section has been deleted!
+
 These are controlled via the `mdeqasis` command line tool.
 
 # TODO
