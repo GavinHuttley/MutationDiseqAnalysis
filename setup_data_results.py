@@ -5,6 +5,10 @@ import urllib.request
 import zipfile
 
 root_dir = pathlib.Path(__file__).parent
+while not (root_dir / "MutationDiseqAnalysis").exists():
+    root_dir = root_dir.parent
+
+root_dir = root_dir / "MutationDiseqAnalysis"
 
 DATA_URL = "https://www.dropbox.com/scl/fi/9jksdm5lofmnoz2umew0j/mdeq_data.zip?rlkey=5mapp2sdv7jhwxmhuxpta0pqh&dl=1"
 DATA_NAME = "mdeq_data.zip"
