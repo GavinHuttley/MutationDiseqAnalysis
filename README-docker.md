@@ -32,7 +32,12 @@ In the terminal, change into the directory corresponding to the one containing t
 cd MutationDiseqAnalysis
 ```
 
-Then execute the script to download and setup both the data sets and the results.
+Then execute the script to download and set up both the data sets and the results.
+
+> **Warning**
+>
+> `mdeq_results.zip` is ~21GB in size, so it will take some time to download.
+
 ```
 python setup_data_results.py
 ```

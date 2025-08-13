@@ -10,13 +10,13 @@ These are controlled via the `mdeqasis` command line tool.
 # TODO
 
 - [ ] All of the data should be uploaded to Zenodo
-- [ ] write a script that copies all the data and results from zenodo into the container if the data and results are not already present
-- [ ] connect the script to the dockerfile via `devcontainer.json` file
-- [ ] Provide a link to our other instructions on using VS Code to open a directory when you have Docker installed and instantiate a container.
+- [x] write a script that copies all the data and results from zenodo into the container if the data and results are not already present
+- [x] connect the script to the dockerfile via `devcontainer.json` file
+- [x] Provide a link to our other instructions on using VS Code to open a directory when you have Docker installed and instantiate a container.
 
 ## Running the commands
 
-We provide a Dockerfile for constructing the computational environment necessary to repeat these analyses.
+We provide a Dockerfile for constructing the computational environment necessary to repeat these analyses. See README-docker.md in this repository for instructions on how to get setup.
 
 ## Sampling of microbial 16S sequences
 
