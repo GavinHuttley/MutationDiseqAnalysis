@@ -12,7 +12,7 @@ root_dir = root_dir / "MutationDiseqAnalysis"
 
 DATA_URL = "https://www.dropbox.com/scl/fi/9jksdm5lofmnoz2umew0j/mdeq_data.zip?rlkey=5mapp2sdv7jhwxmhuxpta0pqh&dl=1"
 DATA_NAME = "mdeq_data.zip"
-RESULT_URL = "https://www.dropbox.com/scl/fi/t61vshz24h44yxt8a3jr9/mdeq_results.zip?rlkey=6vvocvcorgbgdje8c6x7llq9s&dl=1"
+RESULT_URL = "https://www.dropbox.com/scl/fi/0po821nze1synwckzlj0x/mdeq_results.zip?rlkey=7pjmqh0btuase1idkk33q5hkf&st=8zf34t1g&dl=1"
 RESULT_NAME = "mdeq_results.zip"
 
 
