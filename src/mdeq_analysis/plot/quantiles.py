@@ -82,6 +82,17 @@ def get_quantile_fig(paths: Path, stat: str, alpha: float = 0.4):
                 continue
             fig.add_trace(trace, col=col, row=row)
         util.annotated_subplot(fig, seed, col, row, 0.1, 0.9)
+        # Adjust diagonal line coordinates to match subplot axes
+        fig.add_shape(
+            type="line",
+            x0=0,
+            y0=0,
+            x1=1,
+            y1=1,
+            line=dict(color="black", width=2, dash='dash'),
+            xref=f"x{(col - 1) * 2 + row}",
+            yref=f"y{(col - 1) * 2 + row}",
+        )
 
     fig.update_layout(
         width=900,
@@ -93,8 +104,6 @@ def get_quantile_fig(paths: Path, stat: str, alpha: float = 0.4):
     )
     fig.update_xaxes(tickfont=dict(size=14), dtick=0.25)
     fig.update_yaxes(tickfont=dict(size=14), dtick=0.25)
-    # address plotly bug, suppress MathJax warning box
-    full_figure_for_development(fig, warn=False)
     return fig
 
 
