@@ -89,7 +89,7 @@ def get_quantile_fig(paths: Path, stat: str, alpha: float = 0.4):
             y0=0,
             x1=1,
             y1=1,
-            line=dict(color="black", width=2, dash='dash'),
+            line=dict(color="black", width=2, dash="dash"),
             xref=f"x{(col - 1) * 2 + row}",
             yref=f"y{(col - 1) * 2 + row}",
         )
