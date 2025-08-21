@@ -10,9 +10,9 @@ while not (root_dir / "MutationDiseqAnalysis").exists():
 
 root_dir = root_dir / "MutationDiseqAnalysis"
 
-DATA_URL = "https://www.dropbox.com/scl/fi/9jksdm5lofmnoz2umew0j/mdeq_data.zip?rlkey=5mapp2sdv7jhwxmhuxpta0pqh&dl=1"
+DATA_URL = "https://zenodo.org/records/16916309/files/mdeq_data.zip?download=1"
 DATA_NAME = "mdeq_data.zip"
-RESULT_URL = "https://www.dropbox.com/scl/fi/0po821nze1synwckzlj0x/mdeq_results.zip?rlkey=7pjmqh0btuase1idkk33q5hkf&dl=1"
+RESULT_URL = "https://zenodo.org/records/16916309/files/mdeq_results.zip?download=1"
 RESULT_NAME = "mdeq_results.zip"
 
 
@@ -21,7 +21,7 @@ def get_install_remote(url: str, dest_zip: str, dest: str) -> str:
     unzipped_dest = root_dir / zip_dest.stem
     expected = root_dir / dest
     if expected.exists():
-        return
+        return dest
 
     if zip_dest.exists() and expected.exists():
         # we will inflate zip archive each time
@@ -39,5 +39,5 @@ def get_install_remote(url: str, dest_zip: str, dest: str) -> str:
 if __name__ == "__main__":
     # get the data
     get_install_remote(DATA_URL, DATA_NAME, "data")
-    # get the results -- this is 20GB!
+    # get the results -- this is ~20GB!
     get_install_remote(RESULT_URL, RESULT_NAME, "results")
